@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #2c3e50;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(52, 152, 219, 0.12), transparent 28rem),
+    #f4f7fb;
+}
+
+@layer components {
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-card-lg;
+  }
+  .page-header {
+    @apply text-center text-ink-900 text-3xl font-bold tracking-tight;
+  }
+  .page-kicker {
+    @apply text-center text-xs font-semibold uppercase tracking-[0.2em] text-brand-700;
+  }
+  .page-subtitle {
+    @apply mx-auto max-w-2xl text-center text-sm text-ink-400;
+  }
+  .section-header {
+    @apply mb-4 flex items-center justify-between gap-3 border-b border-ink-100 pb-3 text-lg font-bold text-ink-900;
+  }
+  .subsection-title {
+    @apply mb-3 mt-1 text-sm font-bold uppercase tracking-wide text-ink-500;
+  }
+  .card {
+    @apply rounded-2xl border border-white/80 bg-white/95 p-5 shadow-card backdrop-blur;
+  }
+  .card-muted {
+    @apply rounded-xl border border-ink-100 bg-ink-50/70 p-4;
+  }
+  .param-card-header {
+    @apply text-white text-xs font-semibold uppercase tracking-wide text-center py-2 rounded-md mb-2;
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  }
+  .field-label {
+    @apply mb-1 block text-sm font-semibold text-ink-700;
+  }
+  .input {
+    @apply h-11 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-900 shadow-sm transition placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
+  }
+  .metric-card {
+    @apply rounded-xl border border-ink-100 bg-white p-4 shadow-sm transition;
+  }
+  .metric-label {
+    @apply text-xs font-bold uppercase tracking-wide text-ink-400;
+  }
+  .metric-formula {
+    @apply mt-1 text-xs text-ink-400;
+  }
+  .status-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold;
+  }
+  .btn {
+    @apply rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4 focus:ring-brand-100;
+  }
+  .btn-primary {
+    @apply btn;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+  .btn-secondary {
+    @apply btn bg-ink-500 hover:bg-ink-700;
+  }
+  .btn-success {
+    @apply btn bg-good hover:brightness-110;
+  }
+}
