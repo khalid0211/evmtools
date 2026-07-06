@@ -8,6 +8,7 @@ interface Props {
   onExportJson: () => void
   onImportJson: (file: File) => void
   onExportCsv: () => void
+  onExportMermaid: () => void
   onReset: () => void
   importErrors: string[]
 }
@@ -18,6 +19,7 @@ export default function WbsToolbar({
   onExportJson,
   onImportJson,
   onExportCsv,
+  onExportMermaid,
   onReset,
   importErrors,
 }: Props) {
@@ -81,6 +83,14 @@ export default function WbsToolbar({
           />
           <button type="button" className="btn-secondary" onClick={onExportCsv}>
             Export CSV
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            title="Mermaid flowchart for draw.io: Insert → Advanced → Mermaid"
+            onClick={onExportMermaid}
+          >
+            Export Mermaid
           </button>
           <button
             type="button"

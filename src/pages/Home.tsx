@@ -39,7 +39,7 @@ export default function Home() {
         }}
       >
         <h1 className="text-3xl font-semibold text-ink-900">📊 Project Management Tools</h1>
-        <h2 className="text-lg text-ink-500 mt-1">Project Portfolio Analysis &amp; Executive Dashboard</h2>
+        <h2 className="text-lg text-ink-500 mt-1">Productivity Suite for Project Managers</h2>
         <p className="mt-3 text-ink-400 italic max-w-2xl mx-auto">
           Smarter Projects and Portfolios with Earned Value Analysis and AI-Powered Executive Reporting
           <br />
@@ -75,10 +75,12 @@ export default function Home() {
       <div className="card">
         <h3 className="font-semibold text-ink-700 mb-2">ℹ️ How to Use These Tools</h3>
         <p className="text-sm text-ink-500">
-          Both tools run entirely in your browser — no login or data upload required. Adjust the
-          parameters on each page and results update instantly. Use the Cash Flow Simulator's
-          <strong> Set Baseline</strong> and <strong>Compare</strong> buttons to build a scenario
-          comparison, then export to CSV.
+          All three tools run entirely in your browser — no login or data upload required. In the
+          EVM Calculator and Cash Flow Simulator, results update instantly as you adjust
+          parameters; use the Cash Flow Simulator's <strong>Set Baseline</strong> and{' '}
+          <strong>Compare</strong> buttons to build a scenario comparison, then export to CSV. The
+          WBS Maker saves your work in this browser automatically and can export JSON, CSV, and
+          Mermaid files or a printable report.
         </p>
       </div>
     </div>

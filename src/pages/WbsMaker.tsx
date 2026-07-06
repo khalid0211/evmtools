@@ -25,7 +25,7 @@ import {
   parseImportedJson,
   saveToStorage,
 } from '../lib/wbs/persistence'
-import { exportOutlineCsv } from '../lib/wbs/export'
+import { exportMermaid, exportOutlineCsv } from '../lib/wbs/export'
 import type { MonteCarloResult, WbsDictionary, WbsSettings } from '../types/wbs'
 
 function fmt(n: number): string {
@@ -216,6 +216,10 @@ export default function WbsMaker() {
         onExportCsv={() => {
           exportOutlineCsv(state, computed)
           showToast('Outline exported as CSV')
+        }}
+        onExportMermaid={() => {
+          exportMermaid(state, computed)
+          showToast('Mermaid file exported — in draw.io use Insert → Advanced → Mermaid')
         }}
         onReset={handleReset}
         importErrors={importErrors}
