@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mulberry32, percentile, sampleBetaPert, summarize } from './random'
+import { empiricalCdf, mulberry32, percentile, sampleBetaPert, summarize } from './random'
 
 describe('mulberry32', () => {
   it('is reproducible for the same seed', () => {
@@ -66,6 +66,18 @@ describe('sampleBetaPert', () => {
     const pert = (o + 4 * ml + p) / 6
     expect(sum / n).toBeGreaterThan(pert * 0.99)
     expect(sum / n).toBeLessThan(pert * 1.01)
+  })
+})
+
+describe('empiricalCdf', () => {
+  it('returns the fraction of samples at or below the value', () => {
+    expect(empiricalCdf([1, 2, 3, 4, 5], 3)).toBe(0.6)
+    expect(empiricalCdf([1, 2, 3, 4, 5], 0)).toBe(0)
+    expect(empiricalCdf([1, 2, 3, 4, 5], 10)).toBe(1)
+  })
+
+  it('handles empty input', () => {
+    expect(empiricalCdf([], 1)).toBeNaN()
   })
 })
 

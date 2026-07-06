@@ -1,5 +1,5 @@
 import type { MonteCarloResult, WbsState } from '../../types/wbs'
-import { costTriple, durationTriple } from './calculations'
+import { costTriple, durationTriple, pertMean } from './calculations'
 import { isLeaf } from './tree'
 import { mulberry32, sampleBetaPert, summarize } from '../shared/random'
 
@@ -19,6 +19,28 @@ interface LeafModel {
 export interface MonteCarloOptions {
   iterations: number
   seed: number
+}
+
+/**
+ * Deterministic project duration in days using each leaf's PERT duration:
+ * max(start + pertDuration) − min(start) over date-valid leaves.
+ */
+export function pertProjectDuration(state: WbsState): number {
+  let minStartMs = Infinity
+  let maxEndMs = -Infinity
+  for (const node of Object.values(state.nodes)) {
+    if (!isLeaf(node)) continue
+    const { startDate, endDate } = node.dict
+    if (!startDate || !endDate || endDate < startDate) continue
+    const startMs = Date.parse(`${startDate}T00:00:00Z`)
+    if (!Number.isFinite(startMs)) continue
+    const dur = durationTriple(node.dict)
+    const endMs = startMs + pertMean(dur.o, dur.ml, dur.p) * MS_DAY
+    if (startMs < minStartMs) minStartMs = startMs
+    if (endMs > maxEndMs) maxEndMs = endMs
+  }
+  if (!Number.isFinite(minStartMs) || !Number.isFinite(maxEndMs)) return 0
+  return (maxEndMs - minStartMs) / MS_DAY
 }
 
 export function runMonteCarlo(state: WbsState, opts: MonteCarloOptions): MonteCarloResult {

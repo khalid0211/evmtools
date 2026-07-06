@@ -110,31 +110,32 @@ export default function WbsNodeEditor({
           {advanced && (
             <div className="card-muted space-y-3">
               <div className="subsection-title">Three-Point Estimates</div>
-              <div className="grid grid-cols-2 gap-3">
+              {/* raw stored values so typing isn't snapped mid-edit; checks surface as warnings */}
+              <div className="grid grid-cols-2 items-end gap-3">
                 <NumberField
                   label="Optimistic Cost"
-                  value={cost.o}
+                  value={node.dict.costOptimistic ?? cost.ml}
                   min={0}
                   onChange={(v) => onUpdateDict(node.id, { costOptimistic: v })}
                 />
                 <NumberField
                   label="Pessimistic Cost"
-                  value={cost.p}
+                  value={node.dict.costPessimistic ?? cost.ml}
                   min={0}
                   onChange={(v) => onUpdateDict(node.id, { costPessimistic: v })}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 items-end gap-3">
                 <NumberField
                   label="Optimistic Duration"
-                  value={dur.o}
+                  value={node.dict.durOptimisticDays ?? dur.ml}
                   min={0}
                   suffix="d"
                   onChange={(v) => onUpdateDict(node.id, { durOptimisticDays: v })}
                 />
                 <NumberField
                   label="Pessimistic Duration"
-                  value={dur.p}
+                  value={node.dict.durPessimisticDays ?? dur.ml}
                   min={0}
                   suffix="d"
                   onChange={(v) => onUpdateDict(node.id, { durPessimisticDays: v })}

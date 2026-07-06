@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { runMonteCarlo } from './montecarlo'
+import { pertProjectDuration, runMonteCarlo } from './montecarlo'
 import { computeWbs } from './calculations'
 import { createDefaultState, setIdGenerator, wbsReducer } from './tree'
 import type { WbsDictionary, WbsState } from '../../types/wbs'
@@ -108,6 +108,31 @@ describe('runMonteCarlo', () => {
     const mc = runMonteCarlo(state, { iterations: 50, seed: 3 })
     // project spans Jan 1 → Jan 25 = 24 days, driven by the later-starting item
     expect(mc.durationStats.mean).toBe(24)
+  })
+
+  it('computes the deterministic PERT project duration', () => {
+    // n2: Jan 1 start, ML 30, O 20, P 60 → PERT (20 + 120 + 60)/6 = 33.33 → ends Feb 3.33
+    // n3: Jan 20 start, fixed 5 days → ends Jan 25
+    let state = createDefaultState()
+    state = wbsReducer(
+      state,
+      dictPatch('n2', {
+        budget: 1,
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        durOptimisticDays: 20,
+        durPessimisticDays: 60,
+      }),
+    )
+    state = wbsReducer(
+      state,
+      dictPatch('n3', { budget: 1, startDate: '2026-01-20', endDate: '2026-01-25' }),
+    )
+    expect(pertProjectDuration(state)).toBeCloseTo(200 / 6, 6)
+  })
+
+  it('returns 0 PERT duration when no leaves have valid dates', () => {
+    expect(pertProjectDuration(createDefaultState())).toBe(0)
   })
 
   it('excludes undated leaves from the duration model but not the cost model', () => {

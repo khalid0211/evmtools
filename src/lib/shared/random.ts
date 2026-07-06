@@ -68,6 +68,16 @@ export function sampleBetaPert(
   return optimistic + range * sampleBeta(alpha, beta, rng)
 }
 
+/** Fraction of samples ≤ value (empirical cumulative probability), 0..1. */
+export function empiricalCdf(samples: number[], value: number): number {
+  if (samples.length === 0) return NaN
+  let count = 0
+  for (const s of samples) {
+    if (s <= value) count += 1
+  }
+  return count / samples.length
+}
+
 /** Percentile with linear interpolation; input must be sorted ascending. */
 export function percentile(sortedAsc: number[], p: number): number {
   if (sortedAsc.length === 0) return NaN

@@ -66,6 +66,15 @@ function leafWarnings(dict: WbsDictionary): string[] {
   if (dict.costPessimistic !== undefined && dict.costPessimistic < dict.budget) {
     warnings.push('Pessimistic cost is below most likely')
   }
+  if (dict.startDate && dict.endDate && dict.endDate >= dict.startDate) {
+    const mlDur = daysBetween(dict.startDate, dict.endDate)
+    if (dict.durOptimisticDays !== undefined && dict.durOptimisticDays > mlDur) {
+      warnings.push('Optimistic duration exceeds most likely')
+    }
+    if (dict.durPessimisticDays !== undefined && dict.durPessimisticDays < mlDur) {
+      warnings.push('Pessimistic duration is below most likely')
+    }
+  }
   return warnings
 }
 

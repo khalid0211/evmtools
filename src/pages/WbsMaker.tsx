@@ -8,7 +8,7 @@ import RiskMatrix from '../components/wbs/RiskMatrix'
 import MonteCarloSection from '../components/wbs/MonteCarloSection'
 import { createDefaultState, descendants, wbsReducer } from '../lib/wbs/tree'
 import { computeWbs } from '../lib/wbs/calculations'
-import { runMonteCarlo } from '../lib/wbs/montecarlo'
+import { pertProjectDuration, runMonteCarlo } from '../lib/wbs/montecarlo'
 import {
   exportJson,
   loadFromStorage,
@@ -36,6 +36,7 @@ export default function WbsMaker() {
   const storageWarned = useRef(false)
 
   const computed = useMemo(() => computeWbs(state), [state])
+  const pertDuration = useMemo(() => pertProjectDuration(state), [state])
 
   // keep selection valid after deletes/imports
   const selected = state.nodes[selectedId] ? selectedId : state.rootId
@@ -223,6 +224,8 @@ export default function WbsMaker() {
         settings={state.settings}
         result={mcResult}
         stale={mcStale}
+        pertCost={computed.perNode[state.rootId].pertCost}
+        pertDuration={pertDuration}
         onUpdateSettings={handleUpdateSettings}
         onRun={handleRunMc}
       />
