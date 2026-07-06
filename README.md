@@ -1,4 +1,4 @@
-# Portfolio Analysis Suite — New Tools (Stage 1)
+# Project Management Tools — New Tools (Stage 1)
 
 A public, no-login React + TypeScript single-page app providing two standalone tools:
 

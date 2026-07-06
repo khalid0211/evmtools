@@ -30,7 +30,7 @@ export default function Home() {
           border: '1px solid rgba(255,255,255,0.4)',
         }}
       >
-        <h1 className="text-3xl font-semibold text-ink-900">📊 Portfolio Analysis Suite</h1>
+        <h1 className="text-3xl font-semibold text-ink-900">📊 Project Management Tools</h1>
         <h2 className="text-lg text-ink-500 mt-1">Project Portfolio Analysis &amp; Executive Dashboard</h2>
         <p className="mt-3 text-ink-400 italic max-w-2xl mx-auto">
           Smarter Projects and Portfolios with Earned Value Analysis and AI-Powered Executive Reporting

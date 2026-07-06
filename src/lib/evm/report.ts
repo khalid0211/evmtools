@@ -325,7 +325,7 @@ export function buildReportHtml(
     ${chartSection}
 
     <footer class="report-footer">
-      <span>Portfolio Analysis Suite — EVM Calculator</span>
+      <span>Project Management Tools — EVM Calculator</span>
       <span>${projectName} · ${organization}</span>
     </footer>
   </div>
