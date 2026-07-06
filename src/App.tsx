@@ -11,7 +11,7 @@ export default function App() {
           <NavLink to="/" className="flex items-center gap-2 no-underline">
             <span className="text-2xl">📊</span>
             <div>
-              <div className="text-lg font-semibold text-ink-900 leading-tight">Portfolio Analysis Suite</div>
+              <div className="text-lg font-semibold text-ink-900 leading-tight">Project Management Tools</div>
               <div className="text-xs text-ink-400 leading-tight">EVM &amp; Cash Flow Tools</div>
             </div>
           </NavLink>
@@ -51,9 +51,25 @@ export default function App() {
 
       <footer className="bg-white border-t border-ink-200 mt-6">
         <div className="max-w-7xl mx-auto px-4 py-4 text-center text-sm text-ink-400">
-          <div className="font-semibold text-ink-500">Portfolio Analysis Suite — New Tools v1.0</div>
-          <div className="mt-1">
-            Developed by <strong>Dr. Khalid Ahmad Khan</strong> • Engineering Management Solutions
+          <div className="font-semibold text-ink-500">Project Management Tools — New Tools v1.0</div>
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <img
+              src="/developer-photo.jpg"
+              alt="Dr. Khalid Ahmad Khan"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+            <span>
+              Developed by{' '}
+              <a
+                href="https://www.linkedin.com/in/khalidahmadkhan/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-brand-700 hover:underline"
+              >
+                Dr. Khalid Ahmad Khan
+              </a>{' '}
+              • Engineering Management Solutions
+            </span>
           </div>
         </div>
       </footer>
