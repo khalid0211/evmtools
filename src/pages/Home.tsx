@@ -17,6 +17,14 @@ const tools = [
     bullets: ['Linear / Highway / Building / S-Curve', 'Delay & inflation modeling', 'Baseline comparison', 'CSV export'],
     gradient: 'linear-gradient(135deg, #28a745 0%, #1e7e34 100%)',
   },
+  {
+    to: '/wbs-maker',
+    icon: '🗂️',
+    title: 'WBS Maker',
+    desc: 'Build a Work Breakdown Structure with budgets, dates, and risk ratings that roll up to the project.',
+    bullets: ['Visual & outline WBS', 'Budget / date roll-up', 'Risk matrix', 'PERT & Monte Carlo'],
+    gradient: 'linear-gradient(135deg, #f5576c 0%, #b83280 100%)',
+  },
 ]
 
 export default function Home() {
@@ -41,7 +49,7 @@ export default function Home() {
 
       <h2 className="text-xl font-semibold text-ink-700">Choose Your Tool</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tools.map((t) => (
           <div key={t.to} className="card flex flex-col">
             <h3 className="text-lg font-semibold text-ink-700 mb-1">

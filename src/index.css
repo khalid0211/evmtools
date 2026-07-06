@@ -79,3 +79,69 @@ body {
     @apply btn bg-good hover:brightness-110;
   }
 }
+
+/* WBS org-chart connectors */
+.wbs-tree,
+.wbs-tree ul {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.wbs-tree {
+  min-width: max-content;
+  margin: 0 auto;
+}
+.wbs-tree li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 1.25rem 0.5rem 0 0.5rem;
+}
+.wbs-tree > li {
+  padding-top: 0;
+}
+/* rail halves + centre stub above each child (drawn in the li's top padding) */
+.wbs-tree li::before,
+.wbs-tree li::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 50%;
+  width: 50%;
+  height: 1.25rem;
+  border-top: 2px solid #cbd5e1;
+}
+.wbs-tree li::after {
+  right: auto;
+  left: 50%;
+  border-left: 2px solid #cbd5e1;
+}
+.wbs-tree > li::before,
+.wbs-tree > li::after {
+  display: none; /* root has no connectors */
+}
+.wbs-tree li:first-child::before,
+.wbs-tree li:last-child::after {
+  border-top: none;
+}
+.wbs-tree li:only-child::before {
+  display: none;
+}
+/* stub from a parent card down to the sibling rail */
+.wbs-tree li > ul {
+  position: relative;
+  padding-top: 1.25rem;
+}
+.wbs-tree li > ul::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0;
+  height: 1.25rem;
+  border-left: 2px solid #cbd5e1;
+}
