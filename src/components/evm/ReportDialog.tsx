@@ -4,22 +4,33 @@ import type { ReportMeta } from '../../lib/evm/report'
 interface Props {
   open: boolean
   busy?: boolean
+  title?: string
+  initialProjectName?: string
+  initialOrganization?: string
   onCancel: () => void
   onSubmit: (meta: ReportMeta) => void
 }
 
-export default function ReportDialog({ open, busy = false, onCancel, onSubmit }: Props) {
+export default function ReportDialog({
+  open,
+  busy = false,
+  title = 'Generate EVM Report',
+  initialProjectName = 'Sample Project',
+  initialOrganization = 'PMO',
+  onCancel,
+  onSubmit,
+}: Props) {
   const projectId = useId()
   const orgId = useId()
-  const [projectName, setProjectName] = useState('Sample Project')
-  const [organization, setOrganization] = useState('PMO')
+  const [projectName, setProjectName] = useState(initialProjectName)
+  const [organization, setOrganization] = useState(initialOrganization)
 
   useEffect(() => {
     if (open) {
-      setProjectName('Sample Project')
-      setOrganization('PMO')
+      setProjectName(initialProjectName)
+      setOrganization(initialOrganization)
     }
-  }, [open])
+  }, [open, initialProjectName, initialOrganization])
 
   useEffect(() => {
     if (!open) return
@@ -35,8 +46,8 @@ export default function ReportDialog({ open, busy = false, onCancel, onSubmit }:
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit({
-      projectName: projectName.trim() || 'Sample Project',
-      organization: organization.trim() || 'PMO',
+      projectName: projectName.trim() || initialProjectName,
+      organization: organization.trim() || initialOrganization,
     })
   }
 
@@ -55,7 +66,7 @@ export default function ReportDialog({ open, busy = false, onCancel, onSubmit }:
         className="w-full max-w-md rounded-2xl border border-ink-100 bg-white p-6 shadow-card-lg"
       >
         <h2 id={`${projectId}-title`} className="text-lg font-bold text-ink-900">
-          Generate EVM Report
+          {title}
         </h2>
         <p className="mt-1 text-sm text-ink-400">
           Enter the project details for the printable report header.

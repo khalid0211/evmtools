@@ -4,7 +4,12 @@ import NumberField from '../layout/NumberField'
 import MetricCard from '../layout/MetricCard'
 import Plot from '../Plot'
 import { empiricalCdf } from '../../lib/shared/random'
-import type { MonteCarloResult, SummaryStats, WbsSettings } from '../../types/wbs'
+import {
+  buildCostHistogramFigure,
+  buildDurationHistogramFigure,
+  buildScatterFigure,
+} from '../../lib/wbs/figures'
+import type { MonteCarloResult, WbsSettings } from '../../types/wbs'
 
 interface Props {
   settings: WbsSettings
@@ -18,85 +23,12 @@ interface Props {
 
 const ITERATION_OPTIONS = ['1000', '5000', '10000']
 
-/** chi-square quantile, 2 degrees of freedom, for the 80% confidence region */
-const CHI2_80 = 3.219
-
 function fmt(n: number): string {
   return n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
 function pct(p: number): string {
   return `${(p * 100).toFixed(1)}%`
-}
-
-function percentileShapes(stats: SummaryStats): Partial<Plotly.Layout>['shapes'] {
-  return [stats.p50, stats.p80, stats.p90].map((p) => ({
-    type: 'line' as const,
-    x0: p,
-    x1: p,
-    y0: 0,
-    y1: 1,
-    yref: 'paper' as const,
-    line: { color: '#6f42c1', width: 1.5, dash: 'dash' as const },
-  }))
-}
-
-function percentileAnnotations(stats: SummaryStats): Partial<Plotly.Layout>['annotations'] {
-  return [
-    { p: stats.p50, label: 'P50' },
-    { p: stats.p80, label: 'P80' },
-    { p: stats.p90, label: 'P90' },
-  ].map(({ p, label }) => ({
-    x: p,
-    y: 1,
-    yref: 'paper' as const,
-    text: label,
-    showarrow: false,
-    yanchor: 'bottom' as const,
-    font: { size: 10, color: '#6f42c1' },
-  }))
-}
-
-/**
- * Points tracing the 80% covariance ellipse of (x, y) samples, assuming an
- * approximately elliptical scatter. Returns null when either axis is constant.
- */
-function confidenceEllipse(xs: number[], ys: number[]): { x: number[]; y: number[] } | null {
-  const n = xs.length
-  if (n < 3) return null
-  const mx = xs.reduce((s, v) => s + v, 0) / n
-  const my = ys.reduce((s, v) => s + v, 0) / n
-  let sxx = 0
-  let syy = 0
-  let sxy = 0
-  for (let i = 0; i < n; i++) {
-    const dx = xs[i] - mx
-    const dy = ys[i] - my
-    sxx += dx * dx
-    syy += dy * dy
-    sxy += dx * dy
-  }
-  sxx /= n - 1
-  syy /= n - 1
-  sxy /= n - 1
-  if (sxx < 1e-9 || syy < 1e-9) return null
-  const theta = 0.5 * Math.atan2(2 * sxy, sxx - syy)
-  const half = Math.sqrt(((sxx - syy) / 2) ** 2 + sxy ** 2)
-  const l1 = (sxx + syy) / 2 + half
-  const l2 = Math.max((sxx + syy) / 2 - half, 0)
-  const a = Math.sqrt(l1 * CHI2_80)
-  const b = Math.sqrt(l2 * CHI2_80)
-  const cos = Math.cos(theta)
-  const sin = Math.sin(theta)
-  const x: number[] = []
-  const y: number[] = []
-  const steps = 72
-  for (let i = 0; i <= steps; i++) {
-    const t = (2 * Math.PI * i) / steps
-    x.push(mx + a * Math.cos(t) * cos - b * Math.sin(t) * sin)
-    y.push(my + a * Math.cos(t) * sin + b * Math.sin(t) * cos)
-  }
-  return { x, y }
 }
 
 export default function MonteCarloSection({
@@ -111,89 +43,16 @@ export default function MonteCarloSection({
   // memoized so 3 Plotly charts don't redraw on unrelated page re-renders
   const figures = useMemo(() => {
     if (!result) return null
-    const ellipse = confidenceEllipse(result.durations, result.costs)
-    const scatterData: unknown[] = [
-      {
-        x: result.durations,
-        y: result.costs,
-        type: 'scatter',
-        mode: 'markers',
-        name: 'Simulations',
-        marker: { color: '#3498db', size: 4, opacity: 0.3 },
-        hovertemplate: 'Duration: %{x:.0f} d<br>Cost: %{y}<extra></extra>',
-      },
-    ]
-    if (ellipse) {
-      scatterData.push({
-        x: ellipse.x,
-        y: ellipse.y,
-        type: 'scatter',
-        mode: 'lines',
-        name: '≈80% of outcomes',
-        line: { color: '#dc3545', width: 2, dash: 'dash' },
-        hoverinfo: 'skip',
-      })
-    }
     return {
-      costHist: {
-        // nbinsx is valid Plotly but missing from @types/plotly.js, hence the unknown cast
-        data: [
-          {
-            x: result.costs,
-            type: 'histogram',
-            nbinsx: 40,
-            marker: { color: '#667eea' },
-            hovertemplate: 'Cost: %{x}<br>Runs: %{y}<extra></extra>',
-          },
-        ] as unknown as Plotly.Data[],
-        layout: {
-          title: { text: 'Project Cost Distribution', font: { size: 14 } },
-          xaxis: { title: { text: 'Total Cost' } },
-          yaxis: { title: { text: 'Frequency' } },
-          margin: { t: 40, r: 20, b: 45, l: 55 },
-          height: 300,
-          shapes: percentileShapes(result.costStats),
-          annotations: percentileAnnotations(result.costStats),
-        } as Partial<Plotly.Layout>,
-      },
-      durHist: {
-        data: [
-          {
-            x: result.durations,
-            type: 'histogram',
-            nbinsx: 40,
-            marker: { color: '#28a745' },
-            hovertemplate: 'Duration: %{x:.0f} d<br>Runs: %{y}<extra></extra>',
-          },
-        ] as unknown as Plotly.Data[],
-        layout: {
-          title: { text: 'Project Duration Distribution', font: { size: 14 } },
-          xaxis: { title: { text: 'Duration (days)' } },
-          yaxis: { title: { text: 'Frequency' } },
-          margin: { t: 40, r: 20, b: 45, l: 55 },
-          height: 300,
-          shapes: percentileShapes(result.durationStats),
-          annotations: percentileAnnotations(result.durationStats),
-        } as Partial<Plotly.Layout>,
-      },
-      scatter: {
-        data: scatterData as Plotly.Data[],
-        layout: {
-          title: { text: 'Cost vs Duration', font: { size: 14 } },
-          xaxis: { title: { text: 'Duration (days)' } },
-          yaxis: { title: { text: 'Total Cost' } },
-          margin: { t: 40, r: 20, b: 45, l: 55 },
-          height: 360,
-          showlegend: true,
-          legend: { orientation: 'h' as const, y: -0.2 },
-        } as Partial<Plotly.Layout>,
-      },
+      costHist: buildCostHistogramFigure(result),
+      durHist: buildDurationHistogramFigure(result),
+      scatter: buildScatterFigure(result),
     }
   }, [result])
 
   const probabilityRows = useMemo(() => {
     if (!result) return null
-    const rows = [
+    return [
       {
         label: 'P50 (median)',
         cost: result.costStats.p50,
@@ -223,7 +82,6 @@ export default function MonteCarloSection({
         durProb: empiricalCdf(result.durations, pertDuration),
       },
     ]
-    return rows
   }, [result, pertCost, pertDuration])
 
   return (
