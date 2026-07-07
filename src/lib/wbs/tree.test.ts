@@ -36,10 +36,13 @@ describe('wbsReducer - add-child', () => {
     expect(state.nodes.n4.parentId).toBe('n2')
   })
 
-  it('refuses to add children below depth 3', () => {
-    const state = threeLevelState()
+  it('allows a fourth level (1.n.n.n) but refuses a fifth', () => {
+    let state = threeLevelState()
     expect(nodeDepth(state.nodes, 'n4')).toBe(3)
-    const next = wbsReducer(state, { type: 'add-child', parentId: 'n4' })
+    state = wbsReducer(state, { type: 'add-child', parentId: 'n4' }) // n6 at depth 4
+    expect(nodeDepth(state.nodes, 'n6')).toBe(4)
+    expect(computeCodes(state).n6).toBe('1.1.1.1')
+    const next = wbsReducer(state, { type: 'add-child', parentId: 'n6' })
     expect(next).toBe(state)
   })
 

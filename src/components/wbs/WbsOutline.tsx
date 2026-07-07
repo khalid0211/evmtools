@@ -60,9 +60,8 @@ export default function WbsOutline({ state, computed, selectedId, onSelect, onMo
               >
                 <td className="py-2 pr-2 font-mono text-xs text-brand-700">{roll.code}</td>
                 <td
-                  className={`py-2 pr-2 font-medium text-ink-900 ${
-                    roll.depth === 2 ? 'pl-4' : roll.depth === 3 ? 'pl-8' : ''
-                  }`}
+                  className="py-2 pr-2 font-medium text-ink-900"
+                  style={{ paddingLeft: `${(roll.depth - 1) * 16}px` }}
                 >
                   {node.name}
                   {!roll.isLeaf && <span className="ml-1 text-xs text-ink-400">(roll-up)</span>}
