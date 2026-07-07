@@ -6,6 +6,7 @@ import WbsTreeView from '../components/wbs/WbsTreeView'
 import WbsOutline from '../components/wbs/WbsOutline'
 import WbsNodeEditor from '../components/wbs/WbsNodeEditor'
 import WbsGantt from '../components/wbs/WbsGantt'
+import WbsCashFlowSection from '../components/wbs/WbsCashFlowSection'
 import RiskMatrix from '../components/wbs/RiskMatrix'
 import MonteCarloSection from '../components/wbs/MonteCarloSection'
 import ReportDialog from '../components/evm/ReportDialog'
@@ -13,11 +14,13 @@ import { createDefaultState, descendants, wbsReducer } from '../lib/wbs/tree'
 import { computeWbs } from '../lib/wbs/calculations'
 import { pertProjectDuration, runMonteCarlo } from '../lib/wbs/montecarlo'
 import {
+  buildCashFlowFigure,
   buildCostHistogramFigure,
   buildDurationHistogramFigure,
   buildGanttFigure,
   buildScatterFigure,
 } from '../lib/wbs/figures'
+import { computeWbsCashFlow, resolveCashFlowBasis } from '../lib/wbs/cashflow'
 import { buildWbsReportHtml, type WbsReportImages, type WbsReportMeta } from '../lib/wbs/report'
 import {
   exportJson,
@@ -152,6 +155,18 @@ export default function WbsMaker() {
       if (gantt) images.gantt = await toPng(gantt)
       // stale MC results are excluded so the report never shows outdated numbers
       const mc = mcStale ? null : mcResult
+      const basis = resolveCashFlowBasis(
+        state.settings.cfBasis,
+        computed,
+        computed.perNode[state.rootId].pertCost,
+        mc,
+      )
+      const rootBudget = computed.perNode[state.rootId].budget
+      const cfSeries = computeWbsCashFlow(state, computed, {
+        bucket: state.settings.cfBucket,
+        scale: rootBudget > 0 ? basis.total / rootBudget : 1,
+      })
+      if (cfSeries) images.cashflow = await toPng(buildCashFlowFigure(cfSeries, basis.label))
       if (mc) {
         images.costHist = await toPng(buildCostHistogramFigure(mc))
         images.durHist = await toPng(buildDurationHistogramFigure(mc))
@@ -291,6 +306,15 @@ export default function WbsMaker() {
         </div>
         <WbsGantt state={state} computed={computed} />
       </div>
+
+      <WbsCashFlowSection
+        state={state}
+        computed={computed}
+        mcResult={mcResult}
+        mcStale={mcStale}
+        pertCost={computed.perNode[state.rootId].pertCost}
+        onUpdateSettings={handleUpdateSettings}
+      />
 
       <div className="card">
         <div className="section-header">

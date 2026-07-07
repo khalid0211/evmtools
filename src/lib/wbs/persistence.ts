@@ -41,6 +41,8 @@ function sanitizeDict(raw: unknown, errors: string[], path: string): WbsDictiona
     errors.push(`${path}: risk impact must be Low, Medium, or High`)
     return null
   }
+  const curveAlpha = optionalFinite(raw.curveAlpha)
+  const curveBeta = optionalFinite(raw.curveBeta)
   return {
     description: typeof raw.description === 'string' ? raw.description : '',
     budget,
@@ -52,6 +54,9 @@ function sanitizeDict(raw: unknown, errors: string[], path: string): WbsDictiona
     costPessimistic: optionalFinite(raw.costPessimistic),
     durOptimisticDays: optionalFinite(raw.durOptimisticDays),
     durPessimisticDays: optionalFinite(raw.durPessimisticDays),
+    costCurve: raw.costCurve === 'Linear' || raw.costCurve === 'S-Curve' ? raw.costCurve : undefined,
+    curveAlpha: curveAlpha !== undefined && curveAlpha > 0 ? curveAlpha : undefined,
+    curveBeta: curveBeta !== undefined && curveBeta > 0 ? curveBeta : undefined,
   }
 }
 
@@ -145,6 +150,18 @@ export function validateWbsState(raw: unknown): ValidationResult {
         ? (rawSettings.mcIterations as number)
         : defaults.mcIterations,
     mcSeed: optionalFinite(rawSettings.mcSeed) ?? defaults.mcSeed,
+    cfBasis:
+      rawSettings.cfBasis === 'Budget' ||
+      rawSettings.cfBasis === 'PERT' ||
+      rawSettings.cfBasis === 'P50' ||
+      rawSettings.cfBasis === 'P80' ||
+      rawSettings.cfBasis === 'P90'
+        ? rawSettings.cfBasis
+        : defaults.cfBasis,
+    cfBucket:
+      rawSettings.cfBucket === 'Monthly' || rawSettings.cfBucket === 'Weekly'
+        ? rawSettings.cfBucket
+        : defaults.cfBucket,
   }
 
   return { ok: true, state: { rootId, nodes, settings } }

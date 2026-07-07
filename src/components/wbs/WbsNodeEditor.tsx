@@ -1,7 +1,7 @@
 import NumberField from '../layout/NumberField'
 import DateField from '../layout/DateField'
 import SelectField from '../layout/SelectField'
-import type { RiskLevel, WbsComputed, WbsDictionary, WbsState } from '../../types/wbs'
+import type { CashFlowCurve, RiskLevel, WbsComputed, WbsDictionary, WbsState } from '../../types/wbs'
 import { costTriple, durationTriple } from '../../lib/wbs/calculations'
 import { MAX_DEPTH, nodeDepth } from '../../lib/wbs/tree'
 
@@ -106,6 +106,31 @@ export default function WbsNodeEditor({
               onChange={(v) => onUpdateDict(node.id, { riskImpact: v as RiskLevel })}
             />
           </div>
+          <SelectField
+            label="Cash Flow Curve"
+            value={node.dict.costCurve ?? 'Linear'}
+            options={['Linear', 'S-Curve']}
+            help="How this item's budget is spread across its dates in the cash flow chart"
+            onChange={(v) => onUpdateDict(node.id, { costCurve: v as CashFlowCurve })}
+          />
+          {(node.dict.costCurve ?? 'Linear') === 'S-Curve' && (
+            <div className="grid grid-cols-2 items-end gap-3">
+              <NumberField
+                label="Alpha (α)"
+                value={node.dict.curveAlpha ?? 2}
+                min={0.1}
+                step={0.1}
+                onChange={(v) => onUpdateDict(node.id, { curveAlpha: v })}
+              />
+              <NumberField
+                label="Beta (β)"
+                value={node.dict.curveBeta ?? 2}
+                min={0.1}
+                step={0.1}
+                onChange={(v) => onUpdateDict(node.id, { curveBeta: v })}
+              />
+            </div>
+          )}
 
           {advanced && (
             <div className="card-muted space-y-3">

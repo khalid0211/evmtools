@@ -1,5 +1,8 @@
 export type RiskLevel = 'Low' | 'Medium' | 'High'
 export type WbsViewMode = 'Chart' | 'Outline'
+export type CashFlowCurve = 'Linear' | 'S-Curve'
+export type CashFlowBasis = 'Budget' | 'PERT' | 'P50' | 'P80' | 'P90'
+export type CashFlowBucket = 'Monthly' | 'Weekly'
 
 export interface WbsDictionary {
   description: string
@@ -14,6 +17,11 @@ export interface WbsDictionary {
   /** undefined ⇒ equals most-likely duration derived from start/end dates */
   durOptimisticDays?: number
   durPessimisticDays?: number
+  /** undefined ⇒ Linear */
+  costCurve?: CashFlowCurve
+  /** undefined ⇒ 2 (only used when costCurve is 'S-Curve') */
+  curveAlpha?: number
+  curveBeta?: number
 }
 
 export interface WbsNode {
@@ -31,6 +39,8 @@ export interface WbsSettings {
   viewMode: WbsViewMode
   mcIterations: number
   mcSeed: number
+  cfBasis: CashFlowBasis
+  cfBucket: CashFlowBucket
 }
 
 export interface WbsState {
@@ -102,6 +112,15 @@ export interface MonteCarloResult {
   durationStats: SummaryStats
   /** Leaves excluded from the duration model (missing/invalid dates). */
   excludedFromDuration: number
+}
+
+export interface WbsCashFlowSeries {
+  labels: string[]
+  perPeriod: number[]
+  cumulative: number[]
+  total: number
+  /** Leaves excluded for missing/invalid dates. */
+  excluded: number
 }
 
 export interface WbsFileEnvelope {

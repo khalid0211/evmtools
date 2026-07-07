@@ -33,6 +33,9 @@ describe('round trip', () => {
         riskImpact: 'Medium',
         costOptimistic: 1000,
         costPessimistic: 2000,
+        costCurve: 'S-Curve',
+        curveAlpha: 1.5,
+        curveBeta: 3,
       },
     })
     state = wbsReducer(state, {
@@ -135,5 +138,22 @@ describe('defaults and tolerance', () => {
     const result = validateWbsState(raw)
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.state.nodes.n2.dict.costOptimistic).toBeUndefined()
+  })
+
+  it('strips invalid curve fields and defaults cash flow settings', () => {
+    const state = createDefaultState()
+    const raw = JSON.parse(JSON.stringify(state))
+    raw.nodes.n2.dict.costCurve = 'Exponential'
+    raw.nodes.n2.dict.curveAlpha = -1
+    raw.settings.cfBasis = 'P99'
+    delete raw.settings.cfBucket
+    const result = validateWbsState(raw)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.state.nodes.n2.dict.costCurve).toBeUndefined()
+      expect(result.state.nodes.n2.dict.curveAlpha).toBeUndefined()
+      expect(result.state.settings.cfBasis).toBe('Budget')
+      expect(result.state.settings.cfBucket).toBe('Monthly')
+    }
   })
 })

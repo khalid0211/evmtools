@@ -57,6 +57,9 @@ export function buildOutlineRows(state: WbsState, computed: WbsComputed): Record
       risk_score: leaf
         ? riskLevelValue(node.dict.riskLikelihood) * riskLevelValue(node.dict.riskImpact)
         : '',
+      cost_curve: leaf ? (node.dict.costCurve ?? 'Linear') : '',
+      curve_alpha: leaf && node.dict.costCurve === 'S-Curve' ? (node.dict.curveAlpha ?? 2) : '',
+      curve_beta: leaf && node.dict.costCurve === 'S-Curve' ? (node.dict.curveBeta ?? 2) : '',
     }
   })
 }

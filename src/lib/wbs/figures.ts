@@ -1,4 +1,10 @@
-import type { MonteCarloResult, SummaryStats, WbsComputed, WbsState } from '../../types/wbs'
+import type {
+  MonteCarloResult,
+  SummaryStats,
+  WbsCashFlowSeries,
+  WbsComputed,
+  WbsState,
+} from '../../types/wbs'
 import { riskTone, type RiskTone } from './calculations'
 import { isLeaf } from './tree'
 
@@ -172,6 +178,50 @@ export function buildScatterFigure(result: MonteCarloResult): WbsFigure {
       height: 360,
       showlegend: true,
       legend: { orientation: 'h' as const, y: -0.2 },
+    },
+  }
+}
+
+/** Per-period spend bars with the cumulative S-curve on a secondary axis. */
+export function buildCashFlowFigure(series: WbsCashFlowSeries, basisLabel: string): WbsFigure {
+  return {
+    data: [
+      {
+        x: series.labels,
+        y: series.perPeriod,
+        type: 'bar',
+        name: 'Per-period spend',
+        marker: { color: '#3498db', opacity: 0.75 },
+        hovertemplate: '%{x}<br>Spend: %{y:,.0f}<extra></extra>',
+      },
+      {
+        x: series.labels,
+        y: series.cumulative,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Cumulative (S-curve)',
+        yaxis: 'y2',
+        line: { color: '#6f42c1', width: 3 },
+        marker: { size: 5 },
+        hovertemplate: '%{x}<br>Cumulative: %{y:,.0f}<extra></extra>',
+      },
+    ] as Plotly.Data[],
+    layout: {
+      title: { text: `Project Cash Flow (${basisLabel})`, font: { size: 14 } },
+      xaxis: { tickangle: -35 },
+      yaxis: { title: { text: 'Spend per period' }, rangemode: 'tozero' },
+      yaxis2: {
+        title: { text: 'Cumulative' },
+        overlaying: 'y',
+        side: 'right',
+        rangemode: 'tozero',
+        showgrid: false,
+      },
+      margin: { t: 40, r: 60, b: 70, l: 60 },
+      height: 360,
+      showlegend: true,
+      legend: { orientation: 'h' as const, y: -0.3 },
+      bargap: 0.25,
     },
   }
 }

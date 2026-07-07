@@ -44,6 +44,8 @@ export function createDefaultSettings(): WbsSettings {
     viewMode: 'Chart',
     mcIterations: 5000,
     mcSeed: 42,
+    cfBasis: 'Budget',
+    cfBucket: 'Monthly',
   }
 }
 

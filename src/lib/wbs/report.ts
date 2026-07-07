@@ -10,6 +10,7 @@ export interface WbsReportMeta {
 
 export interface WbsReportImages {
   gantt: string
+  cashflow: string
   costHist: string
   durHist: string
   scatter: string
@@ -220,6 +221,18 @@ export function buildWbsReportHtml(
        </div>`
     : ''
 
+  const cashFlowSection = images.cashflow
+    ? `<div class="section">
+         <h2>Cash Flow</h2>
+         <img class="chart chart-wide" src="${images.cashflow}" alt="Cash flow histogram and cumulative S-curve" />
+         <p class="muted small">
+           Each work package spreads its budget across its dates (linear or S-curve as configured).
+           Non-Budget bases scale all items proportionally so the cumulative curve ends at the
+           selected project-level total (named in the chart title).
+         </p>
+       </div>`
+    : ''
+
   const mcSection =
     mc && images.costHist && images.durHist && images.scatter
       ? monteCarloSection(mc, pertCost, pertDuration, images as WbsReportImages)
@@ -373,6 +386,8 @@ export function buildWbsReportHtml(
     </div>
 
     ${ganttSection}
+
+    ${cashFlowSection}
 
     <div class="section">
       <h2>Risk Matrix</h2>
