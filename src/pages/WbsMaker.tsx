@@ -10,6 +10,8 @@ import WbsCashFlowSection from '../components/wbs/WbsCashFlowSection'
 import RiskMatrix from '../components/wbs/RiskMatrix'
 import MonteCarloSection from '../components/wbs/MonteCarloSection'
 import ReportDialog from '../components/evm/ReportDialog'
+import HelpDialog from '../components/layout/HelpDialog'
+import { wbsHelp } from '../lib/help/content'
 import { createDefaultState, descendants, wbsReducer } from '../lib/wbs/tree'
 import { computeWbs } from '../lib/wbs/calculations'
 import { pertProjectDuration, runMonteCarlo } from '../lib/wbs/montecarlo'
@@ -49,6 +51,7 @@ export default function WbsMaker() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [reportBusy, setReportBusy] = useState(false)
   const [editorDirty, setEditorDirty] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const storageWarned = useRef(false)
 
   const computed = useMemo(() => computeWbs(state), [state])
@@ -229,14 +232,24 @@ export default function WbsMaker() {
             values roll up automatically. Your WBS is saved in this browser.
           </p>
         </div>
-        <button
-          type="button"
-          className="btn-primary shrink-0"
-          onClick={() => setDialogOpen(true)}
-          title="Generate a printable A4 report of all inputs and outputs"
-        >
-          Print Report
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setHelpOpen(true)}
+            title="How to use the WBS Maker"
+          >
+            ❓ Help
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setDialogOpen(true)}
+            title="Generate a printable A4 report of all inputs and outputs"
+          >
+            Print Report
+          </button>
+        </div>
       </div>
 
       <WbsToolbar
@@ -372,6 +385,7 @@ export default function WbsMaker() {
         onCancel={() => setDialogOpen(false)}
         onSubmit={generateReport}
       />
+      <HelpDialog open={helpOpen} content={wbsHelp} onClose={() => setHelpOpen(false)} />
     </div>
   )
 }

@@ -8,6 +8,8 @@ import EvmInputsPanel from '../components/evm/EvmInputs'
 import EvmResults from '../components/evm/EvmResults'
 import EvmChart from '../components/evm/EvmChart'
 import ReportDialog from '../components/evm/ReportDialog'
+import HelpDialog from '../components/layout/HelpDialog'
+import { evmHelp } from '../lib/help/content'
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -47,6 +49,7 @@ export default function EvmCalculator() {
   const [inputs, setInputs] = useState<EvmInputs>(DEFAULT_INPUTS)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [reportBusy, setReportBusy] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const result = useMemo(() => computeEvm(inputs), [inputs])
 
   const handleChange = (patch: Partial<EvmInputs>) =>
@@ -92,15 +95,25 @@ export default function EvmCalculator() {
             Track budget, schedule, and forecast performance from one calculation workspace.
           </p>
         </div>
-        <button
-          type="button"
-          className="btn-primary shrink-0"
-          onClick={() => setDialogOpen(true)}
-          disabled={!result.valid}
-          title={result.valid ? 'Generate a printable report' : 'Enter valid inputs to enable the report'}
-        >
-          Print Report
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setHelpOpen(true)}
+            title="How to use the EVM Calculator"
+          >
+            ❓ Help
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setDialogOpen(true)}
+            disabled={!result.valid}
+            title={result.valid ? 'Generate a printable report' : 'Enter valid inputs to enable the report'}
+          >
+            Print Report
+          </button>
+        </div>
       </div>
 
       <EvmInputsPanel inputs={inputs} onChange={handleChange} />
@@ -113,6 +126,7 @@ export default function EvmCalculator() {
         onCancel={() => setDialogOpen(false)}
         onSubmit={generateReport}
       />
+      <HelpDialog open={helpOpen} content={evmHelp} onClose={() => setHelpOpen(false)} />
     </div>
   )
 }

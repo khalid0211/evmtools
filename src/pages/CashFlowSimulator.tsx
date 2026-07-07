@@ -6,6 +6,8 @@ import CashFlowInputsPanel from '../components/cashflow/CashFlowInputs'
 import TimelineBar from '../components/cashflow/TimelineBar'
 import CashFlowChart from '../components/cashflow/CashFlowChart'
 import ComparisonTable from '../components/cashflow/ComparisonTable'
+import HelpDialog from '../components/layout/HelpDialog'
+import { cashFlowHelp } from '../lib/help/content'
 
 const DEFAULT_INPUTS: CashFlowInputs = {
   budget: 1000,
@@ -28,6 +30,7 @@ export default function CashFlowSimulator() {
   const [baseline, setBaseline] = useState<ScenarioRecord | null>(null)
   const [comparisons, setComparisons] = useState<ScenarioRecord[]>([])
   const [toast, setToast] = useState<string | null>(null)
+  const [helpOpen, setHelpOpen] = useState(false)
 
   const result = useMemo(() => computeCashFlow(inputs), [inputs])
 
@@ -85,8 +88,21 @@ export default function CashFlowSimulator() {
 
   return (
     <div className="space-y-4">
-      <h1 className="page-header">💸 Cash Flow Simulator</h1>
-      <p className="text-center text-ink-400 -mt-2 mb-2">Model cash flow under different scenarios</p>
+      <div className="flex flex-col gap-4 rounded-3xl border border-white/80 bg-white/80 px-6 py-7 shadow-card backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <div className="page-kicker !text-left">Cash Flow Analysis</div>
+          <h1 className="page-header !text-left">💸 Cash Flow Simulator</h1>
+          <p className="page-subtitle !mx-0 !text-left">Model cash flow under different scenarios</p>
+        </div>
+        <button
+          type="button"
+          className="btn-secondary shrink-0"
+          onClick={() => setHelpOpen(true)}
+          title="How to use the Cash Flow Simulator"
+        >
+          ❓ Help
+        </button>
+      </div>
 
       <CashFlowInputsPanel inputs={inputs} onChange={handleChange} />
       <TimelineBar pattern={inputs.pattern} />
@@ -141,6 +157,7 @@ export default function CashFlowSimulator() {
       </div>
 
       <ComparisonTable baseline={baseline} comparisons={comparisons} />
+      <HelpDialog open={helpOpen} content={cashFlowHelp} onClose={() => setHelpOpen(false)} />
     </div>
   )
 }
