@@ -88,19 +88,22 @@ describe('rejection paths', () => {
     expect(validateWbsState(bad).ok).toBe(false)
   })
 
-  it('rejects depth beyond 3', () => {
+  it('accepts depth 4 but rejects depth 5', () => {
     let state = createDefaultState()
     state = wbsReducer(state, { type: 'add-child', parentId: 'n2' }) // n4 at depth 3
+    state = wbsReducer(state, { type: 'add-child', parentId: 'n4' }) // n5 at depth 4
+    expect(validateWbsState(JSON.parse(JSON.stringify(state))).ok).toBe(true)
+
     const bad = JSON.parse(JSON.stringify(state)) as WbsState
-    // hand-craft an illegal depth-4 node
-    bad.nodes.n5 = {
-      id: 'n5',
+    // hand-craft an illegal depth-5 node
+    bad.nodes.n6 = {
+      id: 'n6',
       name: 'Too deep',
-      parentId: 'n4',
+      parentId: 'n5',
       childIds: [],
-      dict: bad.nodes.n4.dict,
+      dict: bad.nodes.n5.dict,
     }
-    bad.nodes.n4 = { ...bad.nodes.n4, childIds: ['n5'] }
+    bad.nodes.n5 = { ...bad.nodes.n5, childIds: ['n6'] }
     const result = validateWbsState(bad)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.errors[0]).toContain('depth')

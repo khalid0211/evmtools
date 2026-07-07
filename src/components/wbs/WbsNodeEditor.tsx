@@ -1,16 +1,23 @@
+import { useEffect, useMemo, useState } from 'react'
 import NumberField from '../layout/NumberField'
 import DateField from '../layout/DateField'
 import SelectField from '../layout/SelectField'
-import type { CashFlowCurve, RiskLevel, WbsComputed, WbsDictionary, WbsState } from '../../types/wbs'
-import { costTriple, durationTriple } from '../../lib/wbs/calculations'
+import type {
+  CashFlowCurve,
+  RiskLevel,
+  WbsComputed,
+  WbsDictionary,
+  WbsState,
+} from '../../types/wbs'
+import { costTriple, durationTriple, leafWarnings, pertMean } from '../../lib/wbs/calculations'
 import { MAX_DEPTH, nodeDepth } from '../../lib/wbs/tree'
 
 interface Props {
   state: WbsState
   computed: WbsComputed
   selectedId: string
-  onRename: (id: string, name: string) => void
-  onUpdateDict: (id: string, patch: Partial<WbsDictionary>) => void
+  onSave: (id: string, name: string, dict: WbsDictionary) => void
+  onDirtyChange: (dirty: boolean) => void
   onAddChild: (id: string) => void
   onDelete: (id: string) => void
 }
@@ -25,20 +32,46 @@ export default function WbsNodeEditor({
   state,
   computed,
   selectedId,
-  onRename,
-  onUpdateDict,
+  onSave,
+  onDirtyChange,
   onAddChild,
   onDelete,
 }: Props) {
   const node = state.nodes[selectedId]
+  // draft form state — committed to the WBS only on Save
+  const [draftName, setDraftName] = useState(node?.name ?? '')
+  const [draftDict, setDraftDict] = useState<WbsDictionary>(node?.dict ?? ({} as WbsDictionary))
+
+  const dirty =
+    !!node &&
+    (draftName !== node.name || JSON.stringify(draftDict) !== JSON.stringify(node.dict))
+
+  useEffect(() => {
+    onDirtyChange(dirty)
+  }, [dirty, onDirtyChange])
+
+  // clear the page-level dirty flag if this editor unmounts mid-edit
+  useEffect(() => () => onDirtyChange(false), [onDirtyChange])
+
+  const draftWarnings = useMemo(() => leafWarnings(draftDict), [draftDict])
+
   if (!node) return null
   const roll = computed.perNode[selectedId]
   const advanced = state.settings.advanced
   const depth = nodeDepth(state.nodes, selectedId)
   const canAddChild = depth < MAX_DEPTH
   const isRoot = node.parentId === null
-  const cost = costTriple(node.dict)
-  const dur = durationTriple(node.dict)
+  const cost = costTriple(draftDict)
+  const dur = durationTriple(draftDict)
+  const draftPertCost = pertMean(cost.o, cost.ml, cost.p)
+
+  const patchDraft = (patch: Partial<WbsDictionary>) =>
+    setDraftDict((prev) => ({ ...prev, ...patch }))
+
+  const revert = () => {
+    setDraftName(node.name)
+    setDraftDict(node.dict)
+  }
 
   return (
     <div className="card space-y-4">
@@ -47,6 +80,9 @@ export default function WbsNodeEditor({
           <span className="mr-2 font-mono text-sm text-brand-700">{roll.code}</span>
           {roll.isLeaf ? 'Work Package' : 'Summary Element'}
         </span>
+        {dirty && (
+          <span className="status-badge bg-warn/20 text-ink-700">unsaved changes</span>
+        )}
       </div>
 
       <div>
@@ -56,8 +92,8 @@ export default function WbsNodeEditor({
         <input
           id="wbs-node-name"
           className="input"
-          value={node.name}
-          onChange={(e) => onRename(node.id, e.target.value)}
+          value={draftName}
+          onChange={(e) => setDraftName(e.target.value)}
         />
       </div>
 
@@ -70,64 +106,64 @@ export default function WbsNodeEditor({
             <textarea
               id="wbs-node-desc"
               className="input h-20 py-2"
-              value={node.dict.description}
-              onChange={(e) => onUpdateDict(node.id, { description: e.target.value })}
+              value={draftDict.description}
+              onChange={(e) => patchDraft({ description: e.target.value })}
             />
           </div>
           <NumberField
             label="Budget (Most Likely)"
-            value={node.dict.budget}
+            value={draftDict.budget}
             min={0}
-            onChange={(v) => onUpdateDict(node.id, { budget: v })}
+            onChange={(v) => patchDraft({ budget: v })}
           />
           <div className="grid grid-cols-2 gap-3">
             <DateField
               label="Start Date"
-              value={node.dict.startDate}
-              onChange={(v) => onUpdateDict(node.id, { startDate: v })}
+              value={draftDict.startDate}
+              onChange={(v) => patchDraft({ startDate: v })}
             />
             <DateField
               label="End Date"
-              value={node.dict.endDate}
-              onChange={(v) => onUpdateDict(node.id, { endDate: v })}
+              value={draftDict.endDate}
+              onChange={(v) => patchDraft({ endDate: v })}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <SelectField
               label="Risk Likelihood"
-              value={node.dict.riskLikelihood}
+              value={draftDict.riskLikelihood}
               options={RISK_OPTIONS}
-              onChange={(v) => onUpdateDict(node.id, { riskLikelihood: v as RiskLevel })}
+              onChange={(v) => patchDraft({ riskLikelihood: v as RiskLevel })}
             />
             <SelectField
               label="Risk Impact"
-              value={node.dict.riskImpact}
+              value={draftDict.riskImpact}
               options={RISK_OPTIONS}
-              onChange={(v) => onUpdateDict(node.id, { riskImpact: v as RiskLevel })}
+              onChange={(v) => patchDraft({ riskImpact: v as RiskLevel })}
             />
           </div>
           <SelectField
             label="Cash Flow Curve"
-            value={node.dict.costCurve ?? 'Linear'}
+            value={draftDict.costCurve ?? 'Linear'}
             options={['Linear', 'S-Curve']}
             help="How this item's budget is spread across its dates in the cash flow chart"
-            onChange={(v) => onUpdateDict(node.id, { costCurve: v as CashFlowCurve })}
+            onChange={(v) => patchDraft({ costCurve: v as CashFlowCurve })}
           />
-          {(node.dict.costCurve ?? 'Linear') === 'S-Curve' && (
+          {(draftDict.costCurve ?? 'Linear') === 'S-Curve' && (
             <div className="grid grid-cols-2 items-end gap-3">
               <NumberField
                 label="Alpha (α)"
-                value={node.dict.curveAlpha ?? 2}
+                value={draftDict.curveAlpha ?? 2}
                 min={0.1}
                 step={0.1}
-                onChange={(v) => onUpdateDict(node.id, { curveAlpha: v })}
+                onChange={(v) => patchDraft({ curveAlpha: v })}
               />
               <NumberField
                 label="Beta (β)"
-                value={node.dict.curveBeta ?? 2}
+                value={draftDict.curveBeta ?? 2}
                 min={0.1}
                 step={0.1}
-                onChange={(v) => onUpdateDict(node.id, { curveBeta: v })}
+                onChange={(v) => patchDraft({ curveBeta: v })}
               />
             </div>
           )}
@@ -135,40 +171,39 @@ export default function WbsNodeEditor({
           {advanced && (
             <div className="card-muted space-y-3">
               <div className="subsection-title">Three-Point Estimates</div>
-              {/* raw stored values so typing isn't snapped mid-edit; checks surface as warnings */}
               <div className="grid grid-cols-2 items-end gap-3">
                 <NumberField
                   label="Optimistic Cost"
-                  value={node.dict.costOptimistic ?? cost.ml}
+                  value={draftDict.costOptimistic ?? cost.ml}
                   min={0}
-                  onChange={(v) => onUpdateDict(node.id, { costOptimistic: v })}
+                  onChange={(v) => patchDraft({ costOptimistic: v })}
                 />
                 <NumberField
                   label="Pessimistic Cost"
-                  value={node.dict.costPessimistic ?? cost.ml}
+                  value={draftDict.costPessimistic ?? cost.ml}
                   min={0}
-                  onChange={(v) => onUpdateDict(node.id, { costPessimistic: v })}
+                  onChange={(v) => patchDraft({ costPessimistic: v })}
                 />
               </div>
               <div className="grid grid-cols-2 items-end gap-3">
                 <NumberField
                   label="Optimistic Duration"
-                  value={node.dict.durOptimisticDays ?? dur.ml}
+                  value={draftDict.durOptimisticDays ?? dur.ml}
                   min={0}
                   suffix="d"
-                  onChange={(v) => onUpdateDict(node.id, { durOptimisticDays: v })}
+                  onChange={(v) => patchDraft({ durOptimisticDays: v })}
                 />
                 <NumberField
                   label="Pessimistic Duration"
-                  value={node.dict.durPessimisticDays ?? dur.ml}
+                  value={draftDict.durPessimisticDays ?? dur.ml}
                   min={0}
                   suffix="d"
-                  onChange={(v) => onUpdateDict(node.id, { durPessimisticDays: v })}
+                  onChange={(v) => patchDraft({ durPessimisticDays: v })}
                 />
               </div>
               <div className="text-xs text-ink-400">
                 Most likely: cost {fmt(cost.ml)}, duration {fmt(dur.ml)} days (from Budget and
-                dates). PERT cost: {fmt(roll.pertCost)}.
+                dates). PERT cost: {fmt(draftPertCost)}.
               </div>
             </div>
           )}
@@ -193,9 +228,9 @@ export default function WbsNodeEditor({
         </div>
       )}
 
-      {roll.warnings.length > 0 && (
+      {roll.isLeaf && draftWarnings.length > 0 && (
         <ul className="space-y-1">
-          {roll.warnings.map((w) => (
+          {draftWarnings.map((w) => (
             <li key={w} className="text-xs font-semibold text-danger">
               ⚠ {w}
             </li>
@@ -204,6 +239,22 @@ export default function WbsNodeEditor({
       )}
 
       <div className="flex flex-wrap gap-2 border-t border-ink-100 pt-4">
+        <button
+          type="button"
+          className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!dirty}
+          onClick={() => onSave(node.id, draftName, draftDict)}
+        >
+          💾 Save
+        </button>
+        <button
+          type="button"
+          className="btn-secondary disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!dirty}
+          onClick={revert}
+        >
+          Revert
+        </button>
         {canAddChild && (
           <button type="button" className="btn-success" onClick={() => onAddChild(node.id)}>
             + Add Child

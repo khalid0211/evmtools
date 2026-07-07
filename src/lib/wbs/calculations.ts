@@ -52,7 +52,7 @@ export function durationTriple(dict: WbsDictionary): { o: number; ml: number; p:
   return { o, ml, p }
 }
 
-function leafWarnings(dict: WbsDictionary): string[] {
+export function leafWarnings(dict: WbsDictionary): string[] {
   const warnings: string[] = []
   if (dict.startDate && dict.endDate && dict.endDate < dict.startDate) {
     warnings.push('End date is before start date')
@@ -94,7 +94,7 @@ export function computeWbs(state: WbsState): WbsComputed {
 
   const rollup = (id: string): NodeRollup => {
     const node = nodes[id]
-    const depth = nodeDepth(nodes, id) as 1 | 2 | 3
+    const depth = nodeDepth(nodes, id)
 
     if (isLeaf(node)) {
       const { o, ml, p } = costTriple(node.dict)

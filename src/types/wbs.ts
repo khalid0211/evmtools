@@ -62,7 +62,8 @@ export type WbsAction =
 
 export interface NodeRollup {
   code: string
-  depth: 1 | 2 | 3
+  /** 1 (project root) through MAX_DEPTH */
+  depth: number
   isLeaf: boolean
   budget: number
   pertCost: number

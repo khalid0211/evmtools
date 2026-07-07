@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import Plotly from 'plotly.js-dist-min'
 import MetricCard from '../components/layout/MetricCard'
 import WbsToolbar from '../components/wbs/WbsToolbar'
@@ -48,6 +48,7 @@ export default function WbsMaker() {
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [reportBusy, setReportBusy] = useState(false)
+  const [editorDirty, setEditorDirty] = useState(false)
   const storageWarned = useRef(false)
 
   const computed = useMemo(() => computeWbs(state), [state])
@@ -82,11 +83,29 @@ export default function WbsMaker() {
     dispatch({ type: 'update-settings', patch })
   }
 
-  function handleUpdateDict(id: string, patch: Partial<WbsDictionary>) {
-    dispatch({ type: 'update-dict', id, patch })
+  const handleDirtyChange = useCallback((dirty: boolean) => setEditorDirty(dirty), [])
+
+  function confirmDiscardDraft(): boolean {
+    const name = state.nodes[selected]?.name ?? 'this item'
+    return window.confirm(`Discard unsaved changes to "${name}"?`)
+  }
+
+  function handleSelect(id: string) {
+    if (id === selected) return
+    if (editorDirty && !confirmDiscardDraft()) return
+    setEditorDirty(false)
+    setSelectedId(id)
+  }
+
+  function handleSave(id: string, name: string, dict: WbsDictionary) {
+    dispatch({ type: 'rename', id, name })
+    dispatch({ type: 'update-dict', id, patch: dict })
+    showToast('Saved')
   }
 
   function handleAddChild(parentId: string) {
+    // adding a child to the node being edited flips its form to summary mode
+    if (parentId === selected && editorDirty && !confirmDiscardDraft()) return
     dispatch({ type: 'add-child', parentId })
   }
 
@@ -273,7 +292,7 @@ export default function WbsMaker() {
               state={state}
               computed={computed}
               selectedId={selected}
-              onSelect={setSelectedId}
+              onSelect={handleSelect}
               onAddChild={handleAddChild}
               onDelete={handleDelete}
             />
@@ -282,18 +301,19 @@ export default function WbsMaker() {
               state={state}
               computed={computed}
               selectedId={selected}
-              onSelect={setSelectedId}
+              onSelect={handleSelect}
               onMove={(id, direction) => dispatch({ type: 'move', id, direction })}
             />
           )}
         </div>
         <div>
           <WbsNodeEditor
+            key={`${selected}:${state.nodes[selected].childIds.length}`}
             state={state}
             computed={computed}
             selectedId={selected}
-            onRename={(id, name) => dispatch({ type: 'rename', id, name })}
-            onUpdateDict={handleUpdateDict}
+            onSave={handleSave}
+            onDirtyChange={handleDirtyChange}
             onAddChild={handleAddChild}
             onDelete={handleDelete}
           />
