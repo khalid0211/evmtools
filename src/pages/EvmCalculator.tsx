@@ -10,6 +10,7 @@ import EvmChart from '../components/evm/EvmChart'
 import ReportDialog from '../components/evm/ReportDialog'
 import HelpDialog from '../components/layout/HelpDialog'
 import { evmHelp } from '../lib/help/content'
+import { useLogToolUsage } from '../lib/auth/useLogToolUsage'
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -46,6 +47,7 @@ const DEFAULT_INPUTS: EvmInputs = {
 }
 
 export default function EvmCalculator() {
+  useLogToolUsage('evm-calculator')
   const [inputs, setInputs] = useState<EvmInputs>(DEFAULT_INPUTS)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [reportBusy, setReportBusy] = useState(false)

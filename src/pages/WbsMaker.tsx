@@ -32,12 +32,14 @@ import {
 } from '../lib/wbs/persistence'
 import { exportMermaid, exportOutlineCsv } from '../lib/wbs/export'
 import type { MonteCarloResult, WbsDictionary, WbsSettings } from '../types/wbs'
+import { useLogToolUsage } from '../lib/auth/useLogToolUsage'
 
 function fmt(n: number): string {
   return n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
 export default function WbsMaker() {
+  useLogToolUsage('wbs-maker')
   const [state, dispatch] = useReducer(
     wbsReducer,
     undefined,

@@ -6,6 +6,8 @@ type Step = 'email' | 'code'
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { auth, busy, error, requestCode, verifyCode } = useAuth()
   const [step, setStep] = useState<Step>('email')
+  const [name, setName] = useState('')
+  const [organization, setOrganization] = useState('')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
 
@@ -24,7 +26,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   const handleVerify = async (e: FormEvent) => {
     e.preventDefault()
     try {
-      await verifyCode(email.trim().toLowerCase(), code)
+      await verifyCode(email.trim().toLowerCase(), code, name.trim(), organization.trim())
     } catch {
       // error message already set in context state
     }
@@ -50,6 +52,34 @@ export default function AuthGate({ children }: { children: ReactNode }) {
                 </p>
               </div>
               <div>
+                <label className="field-label" htmlFor="auth-name">
+                  Name
+                </label>
+                <input
+                  id="auth-name"
+                  type="text"
+                  required
+                  autoFocus
+                  className="input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Jane Doe"
+                />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="auth-organization">
+                  Organization <span className="font-normal text-ink-400">(optional)</span>
+                </label>
+                <input
+                  id="auth-organization"
+                  type="text"
+                  className="input"
+                  value={organization}
+                  onChange={(e) => setOrganization(e.target.value)}
+                  placeholder="Acme Corp"
+                />
+              </div>
+              <div>
                 <label className="field-label" htmlFor="auth-email">
                   Email address
                 </label>
@@ -57,7 +87,6 @@ export default function AuthGate({ children }: { children: ReactNode }) {
                   id="auth-email"
                   type="email"
                   required
-                  autoFocus
                   className="input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -65,7 +94,11 @@ export default function AuthGate({ children }: { children: ReactNode }) {
                 />
               </div>
               {error && <div className="text-sm text-danger">{error}</div>}
-              <button type="submit" className="btn-primary w-full" disabled={busy || !email.trim()}>
+              <button
+                type="submit"
+                className="btn-primary w-full"
+                disabled={busy || !email.trim() || !name.trim()}
+              >
                 {busy ? 'Sending…' : 'Send code'}
               </button>
             </form>

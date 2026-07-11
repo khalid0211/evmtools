@@ -8,6 +8,7 @@ import CashFlowChart from '../components/cashflow/CashFlowChart'
 import ComparisonTable from '../components/cashflow/ComparisonTable'
 import HelpDialog from '../components/layout/HelpDialog'
 import { cashFlowHelp } from '../lib/help/content'
+import { useLogToolUsage } from '../lib/auth/useLogToolUsage'
 
 const DEFAULT_INPUTS: CashFlowInputs = {
   budget: 1000,
@@ -26,6 +27,7 @@ function nowStamp(): string {
 }
 
 export default function CashFlowSimulator() {
+  useLogToolUsage('cash-flow-simulator')
   const [inputs, setInputs] = useState<CashFlowInputs>(DEFAULT_INPUTS)
   const [baseline, setBaseline] = useState<ScenarioRecord | null>(null)
   const [comparisons, setComparisons] = useState<ScenarioRecord[]>([])

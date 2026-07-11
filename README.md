@@ -108,6 +108,7 @@ On Coolify (Dockerfile build pack):
 | `MAX_ATTEMPTS` | Wrong-code lockout threshold | `5` |
 | `EMAIL_THROTTLE_PER_HOUR` | Max code requests per email/hour | `5` |
 | `IP_RATE_LIMIT_PER_HOUR` | Max code requests per IP/hour | `30` |
+| `ADMIN_KEY` | Shared secret for the `/admin` activity dashboard (`X-Admin-Key` header) — generate with `openssl rand -hex 32`; unset means the admin API is unreachable | *(optional, no default)* |
 
 If `SMTP_USER`/`SMTP_PASS` are unset, the backend logs the verification code
 to the console instead of emailing it — useful for local development, not
@@ -117,9 +118,11 @@ for production.
 
 | Route | Page |
 |-------|------|
-| `/` | Home — two tool cards |
+| `/` | Home — three tool cards |
 | `/evm-calculator` | EVM Calculator |
 | `/cash-flow-simulator` | Cash Flow Simulator |
+| `/wbs-maker` | WBS Maker |
+| `/admin` | Activity dashboard (top users, tool usage, CSV export) — requires the `ADMIN_KEY` |
 
 ## Notes on the port from Streamlit
 

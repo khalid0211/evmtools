@@ -4,6 +4,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from './src/env.js'
 import { authRouter } from './src/auth.js'
+import { activityRouter } from './src/activity.js'
+import { adminRouter } from './src/admin.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.join(__dirname, 'dist')
@@ -13,6 +15,8 @@ app.set('trust proxy', 1)
 app.use(express.json({ limit: '256kb' }))
 
 app.use('/api/auth', authRouter)
+app.use('/api/activity', activityRouter)
+app.use('/api/admin', adminRouter)
 
 app.use(express.static(distDir))
 
