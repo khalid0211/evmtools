@@ -75,7 +75,7 @@ export default function Home() {
       <div className="card">
         <h3 className="font-semibold text-ink-700 mb-2">ℹ️ How to Use These Tools</h3>
         <p className="text-sm text-ink-500">
-          All three tools run entirely in your browser — no login or data upload required. In the
+          All three tools run entirely in your browser — no data upload required. In the
           EVM Calculator and Cash Flow Simulator, results update instantly as you adjust
           parameters; use the Cash Flow Simulator's <strong>Set Baseline</strong> and{' '}
           <strong>Compare</strong> buttons to build a scenario comparison, then export to CSV. The

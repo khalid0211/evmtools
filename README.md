@@ -1,11 +1,11 @@
 # Project Management Tools — New Tools (Stage 1)
 
-A public, no-login React + TypeScript single-page app providing two standalone tools:
+A React + TypeScript single-page app providing standalone project management tools (EVM Calculator, Cash Flow Simulator, WBS Maker), gated behind email verification:
 
 1. **EVM Calculator** — Earned Value Management calculations (PV/EV/AC, CV, SV, CPI, SPI, SPIe, EAC, ETC, VAC, TCPI) with interactive PV curve analysis. Duration can be entered directly (months) or derived from Plan Start / Plan Finish / Status Date. Planned Value supports Linear, S-Curve (configurable α/β), or manual entry. Earned Value supports manual entry, % Complete, or an inflation-adjusted "Estimate" derived from the present value of the Actual Cost cash flow.
 2. **Cash Flow Simulator** — Model cash flow under Linear, Highway, Building, and S-Curve patterns with start delay, project delay, and inflation; set baselines, compare scenarios, and export CSV.
 
-This is Stage 1 of the Streamlit → React migration. There is **no backend, no login, and no database**. All calculations run in the browser.
+This is Stage 1 of the Streamlit → React migration. All EVM/cash-flow calculations run in the browser. The app itself is gated behind email verification (see below) — a small Express backend issues and checks 6-digit email codes and a long-lived session token, but has no other server-side logic.
 
 ## Tech stack
 
@@ -15,6 +15,7 @@ This is Stage 1 of the Streamlit → React migration. There is **no backend, no 
 - Tailwind CSS 3
 - Plotly.js (`plotly.js-dist-min`) for charts
 - Vitest for unit tests
+- `server/` — Express + Node's built-in `node:sqlite`, JWT sessions, Brevo SMTP (email verification gate, see below)
 
 ## Project layout
 
@@ -40,10 +41,20 @@ newtools/
 
 ## Local development
 
+Frontend (Vite dev server, proxies `/api` to the backend below):
+
 ```bash
-cd F:\Coding\Portfolio\newtools
 npm install
 npm run dev        # http://localhost:5173
+```
+
+Backend (in a second terminal):
+
+```bash
+cd server
+npm install
+cp .env.example .env   # fill in JWT_SECRET (openssl rand -hex 32); SMTP_* optional in dev
+npm run dev             # http://localhost:3000 — logs the verification code to the console if SMTP isn't configured
 ```
 
 ## Build
@@ -64,40 +75,43 @@ npm test           # one-off run
 npm run test:watch # watch mode
 ```
 
-## Deploy to a VPS (nginx)
+## Deploy (Docker / Coolify)
 
-1. Build locally (or in CI):
-   ```bash
-   npm ci
-   npm run build
-   ```
-2. Copy `dist/` to the VPS, e.g. `/var/www/portfolio-suite/`:
-   ```bash
-   scp -r dist/* user@your-vps:/var/www/portfolio-suite/
-   ```
-3. nginx config (SPA fallback so client-side routes work on refresh):
-   ```nginx
-   server {
-       listen 80;
-       server_name your-domain.com;
-       root /var/www/portfolio-suite;
-       index index.html;
+The `Dockerfile` builds the frontend, installs the `server/` backend's production
+dependencies, and produces a single image: a Node/Express process that serves
+the built SPA as static files and the `/api/auth/*` verification endpoints
+from one port (`3000`). There's no separate nginx container — Express handles
+the SPA fallback itself.
 
-       location / {
-           try_files $uri $uri/ /index.html;
-       }
+```bash
+docker build -t evmtools .
+docker run -p 3000:3000 --env-file server/.env -v evmtools-data:/app/server/data evmtools
+```
 
-       # cache static assets
-       location ~* \.(js|css|svg|woff2?)$ {
-           expires 30d;
-           add_header Cache-Control "public, immutable";
-       }
-   }
-   ```
-4. Reload nginx: `sudo nginx -t && sudo nginx -s reload`
-5. (Optional) Add HTTPS with Let's Encrypt: `sudo certbot --nginx -d your-domain.com`
+On Coolify (Dockerfile build pack):
 
-No environment variables or secrets are required for Stage 1.
+1. Set the app's exposed port to `3000`.
+2. Add a **persistent Volume** mounted at `/app/server/data` (or wherever `SQLITE_PATH`'s directory points) — without it, every redeploy wipes the verification database.
+3. Set the environment variables below directly in Coolify's env UI (never through chat or a committed file).
+
+### Environment variables (backend, `server/.env`)
+
+| Var | Purpose | Example |
+|---|---|---|
+| `PORT` | Express listen port | `3000` |
+| `SQLITE_PATH` | SQLite DB file location | `/app/server/data/app.db` |
+| `JWT_SECRET` | Signs session tokens — generate with `openssl rand -hex 32` | *(required, no default)* |
+| `JWT_EXPIRES_IN` | Session token lifetime | `365d` |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Brevo SMTP creds | `smtp-relay.brevo.com` / `587` / ... |
+| `MAIL_FROM` | Verification email sender | `Project Management Tools <no-reply@projectadvisor.cloud>` |
+| `CODE_TTL_MINUTES` | Verification code expiry | `10` |
+| `MAX_ATTEMPTS` | Wrong-code lockout threshold | `5` |
+| `EMAIL_THROTTLE_PER_HOUR` | Max code requests per email/hour | `5` |
+| `IP_RATE_LIMIT_PER_HOUR` | Max code requests per IP/hour | `30` |
+
+If `SMTP_USER`/`SMTP_PASS` are unset, the backend logs the verification code
+to the console instead of emailing it — useful for local development, not
+for production.
 
 ## Routes
 
