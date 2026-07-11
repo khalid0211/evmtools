@@ -69,6 +69,15 @@ export default function App() {
             >
               WBS Maker
             </NavLink>
+            <NavLink
+              to="/manual"
+              title="User manual — how each tool works, and how to read its calculations"
+              className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium no-underline ${isActive ? 'bg-brand-50 text-brand-700' : 'text-ink-500 hover:bg-ink-50'}`
+              }
+            >
+              ❓ Manual
+            </NavLink>
           </nav>
         </div>
       </header>

@@ -11,6 +11,7 @@ const EvmCalculator = lazy(() => import('./pages/EvmCalculator'))
 const CashFlowSimulator = lazy(() => import('./pages/CashFlowSimulator'))
 const WbsMaker = lazy(() => import('./pages/WbsMaker'))
 const Admin = lazy(() => import('./pages/Admin'))
+const Manual = lazy(() => import('./pages/Manual'))
 
 function PageFallback() {
   return <div className="text-center text-ink-400 py-12">Loading…</div>
@@ -53,6 +54,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 element={
                   <Suspense fallback={<PageFallback />}>
                     <Admin />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="manual"
+                element={
+                  <Suspense fallback={<PageFallback />}>
+                    <Manual />
                   </Suspense>
                 }
               />
