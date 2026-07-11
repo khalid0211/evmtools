@@ -6,6 +6,8 @@ const STORAGE_KEY = 'evmtools_auth'
 interface AuthState {
   token: string
   email: string
+  name: string | null
+  organization: string | null
 }
 
 function loadAuth(): AuthState | null {
@@ -60,7 +62,7 @@ interface AuthContextValue {
   busy: boolean
   error: string | null
   requestCode: (email: string) => Promise<void>
-  verifyCode: (email: string, code: string) => Promise<void>
+  verifyCode: (email: string, code: string, name: string, organization: string) => Promise<void>
   logout: () => void
 }
 
@@ -84,12 +86,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const verifyCode = useCallback(async (email: string, code: string) => {
+  const verifyCode = useCallback(async (email: string, code: string, name: string, organization: string) => {
     setBusy(true)
     setError(null)
     try {
-      const result = await apiVerifyCode(email, code)
-      const next = { token: result.token, email: result.email }
+      const result = await apiVerifyCode(email, code, name, organization)
+      const next = {
+        token: result.token,
+        email: result.email,
+        name: result.name,
+        organization: result.organization,
+      }
       saveAuth(next)
       setAuth(next)
     } catch (e) {

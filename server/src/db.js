@@ -19,6 +19,13 @@ db.exec(`
   )
 `)
 
+// Migration: add organization to users created before this column existed.
+try {
+  db.exec('ALTER TABLE users ADD COLUMN organization TEXT')
+} catch (e) {
+  if (!/duplicate column name/i.test(e.message)) throw e
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS email_codes (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,6 +39,18 @@ db.exec(`
 `)
 
 db.exec('CREATE INDEX IF NOT EXISTS idx_email_codes_email ON email_codes(email)')
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tool_usage (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    email      TEXT NOT NULL,
+    tool       TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`)
+
+db.exec('CREATE INDEX IF NOT EXISTS idx_tool_usage_tool_created ON tool_usage(tool, created_at)')
+db.exec('CREATE INDEX IF NOT EXISTS idx_tool_usage_email ON tool_usage(email)')
 
 const nowIso = () => new Date().toISOString()
 
@@ -48,6 +67,16 @@ export function insertOrTouchUser(email) {
       'INSERT INTO users (email, created_at, verified_at) VALUES (?, ?, ?)'
     ).run(email, nowIso(), nowIso())
   }
+}
+
+export function updateUserProfile(email, displayName, organization) {
+  insertOrTouchUser(email)
+  db.prepare('UPDATE users SET display_name = ?, organization = ? WHERE email = ?').run(
+    displayName || null,
+    organization || null,
+    email
+  )
+  return getUserByEmail(email)
 }
 
 export function insertCode(email, codeHash, expiresAt) {
@@ -77,4 +106,57 @@ export function markCodeConsumed(id) {
 
 export function incrementAttempts(id) {
   db.prepare('UPDATE email_codes SET attempts = attempts + 1 WHERE id = ?').run(id)
+}
+
+export function insertToolUsage(email, tool) {
+  db.prepare('INSERT INTO tool_usage (email, tool, created_at) VALUES (?, ?, ?)').run(
+    email,
+    tool,
+    nowIso()
+  )
+}
+
+const PERIOD_BUCKETS = {
+  day: '%Y-%m-%d',
+  week: '%Y-%W',
+  month: '%Y-%m',
+}
+
+export function getTopUsers(limit) {
+  return db
+    .prepare(
+      `SELECT u.email AS email, u.display_name AS displayName, u.organization AS organization,
+              COUNT(t.id) AS count
+       FROM tool_usage t
+       JOIN users u ON u.email = t.email
+       GROUP BY t.email
+       ORDER BY count DESC
+       LIMIT ?`
+    )
+    .all(limit)
+}
+
+export function getToolCounts(period) {
+  const bucketFormat = PERIOD_BUCKETS[period] || PERIOD_BUCKETS.day
+  return db
+    .prepare(
+      `SELECT strftime('${bucketFormat}', created_at) AS bucket, tool,
+              COUNT(*) AS opens, COUNT(DISTINCT email) AS uniqueUsers
+       FROM tool_usage
+       GROUP BY bucket, tool
+       ORDER BY bucket DESC, tool ASC`
+    )
+    .all()
+}
+
+export function getAllToolUsage() {
+  return db
+    .prepare(
+      `SELECT t.email AS email, u.display_name AS displayName, u.organization AS organization,
+              t.tool AS tool, t.created_at AS createdAt
+       FROM tool_usage t
+       LEFT JOIN users u ON u.email = t.email
+       ORDER BY t.created_at DESC`
+    )
+    .all()
 }

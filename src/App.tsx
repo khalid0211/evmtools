@@ -1,12 +1,32 @@
 import { Outlet, NavLink } from 'react-router-dom'
+import { useAuth } from './lib/auth/AuthContext'
 
 export default function App() {
+  const { auth, logout } = useAuth()
+
   return (
     <div className="min-h-screen flex flex-col">
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
       <header className="bg-white border-b border-ink-200 shadow-sm sticky top-0 z-10">
+        {auth && (
+          <div className="max-w-7xl mx-auto px-4 pt-2 flex items-center justify-end gap-2 text-xs text-ink-400">
+            <span>
+              Registered to: <strong className="text-ink-700">{auth.name ?? auth.email}</strong>
+              {', '}
+              {auth.email}
+            </span>
+            <span aria-hidden="true">&middot;</span>
+            <button
+              type="button"
+              onClick={logout}
+              className="font-semibold text-brand-700 hover:underline"
+            >
+              Sign out
+            </button>
+          </div>
+        )}
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <NavLink to="/" className="flex items-center gap-2 no-underline">
             <span className="text-2xl">📊</span>

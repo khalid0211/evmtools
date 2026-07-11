@@ -20,6 +20,7 @@ const envSchema = z.object({
   MAX_ATTEMPTS: z.coerce.number().default(5),
   EMAIL_THROTTLE_PER_HOUR: z.coerce.number().default(5),
   IP_RATE_LIMIT_PER_HOUR: z.coerce.number().default(30),
+  ADMIN_KEY: z.string().optional(),
   NODE_ENV: z.string().default('development'),
 })
 

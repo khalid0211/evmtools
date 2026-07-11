@@ -8,7 +8,7 @@ import {
   getLatestCodeForEmail,
   countRecentCodesForEmail,
   insertCode,
-  insertOrTouchUser,
+  updateUserProfile,
   markCodeConsumed,
   incrementAttempts,
 } from './db.js'
@@ -22,7 +22,12 @@ const emailField = z
   .max(200)
   .transform((s) => s.trim().toLowerCase())
 const emailSchema = z.object({ email: emailField })
-const verifySchema = z.object({ email: emailField, code: z.string().regex(/^\d{6}$/) })
+const verifySchema = z.object({
+  email: emailField,
+  code: z.string().regex(/^\d{6}$/),
+  name: z.string().trim().min(1).max(200).optional(),
+  organization: z.string().trim().max(200).optional(),
+})
 
 const hashCode = (code) => crypto.createHash('sha256').update(String(code)).digest('hex')
 
@@ -60,7 +65,7 @@ authRouter.post('/request-code', requestLimiter, async (req, res) => {
 authRouter.post('/verify', (req, res) => {
   const parsed = verifySchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'invalid_input' })
-  const { email, code } = parsed.data
+  const { email, code, name, organization } = parsed.data
 
   const row = getLatestCodeForEmail(email)
   if (!row) return res.status(400).json({ error: 'no_code' })
@@ -73,10 +78,10 @@ authRouter.post('/verify', (req, res) => {
   }
 
   markCodeConsumed(row.id)
-  insertOrTouchUser(email)
+  const profile = updateUserProfile(email, name, organization)
 
   const token = jwt.sign({ email }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN })
-  res.json({ token, email })
+  res.json({ token, email, name: profile.display_name, organization: profile.organization })
 })
 
 // Use this to protect any route that requires a verified user.
