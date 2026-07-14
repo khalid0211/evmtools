@@ -25,6 +25,14 @@ const tools = [
     bullets: ['Visual & outline WBS', 'Budget / date roll-up', 'Risk matrix', 'PERT & Monte Carlo'],
     gradient: 'linear-gradient(135deg, #f5576c 0%, #b83280 100%)',
   },
+  {
+    to: '/portfolio-planner',
+    icon: '📁',
+    title: 'Portfolio Planner',
+    desc: 'Plan a portfolio of projects, balance cash flow against funding, and progress it with earned-value metrics.',
+    bullets: ['Portfolio Gantt & what-if moves', 'Cash flow vs funding schedule', 'Overload detection', 'Portfolio EVM roll-up'],
+    gradient: 'linear-gradient(135deg, #f6ad55 0%, #dd6b20 100%)',
+  },
 ]
 
 export default function Home() {
@@ -49,7 +57,7 @@ export default function Home() {
 
       <h2 className="text-xl font-semibold text-ink-700">Choose Your Tool</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {tools.map((t) => (
           <div key={t.to} className="card flex flex-col">
             <h3 className="text-lg font-semibold text-ink-700 mb-1">
@@ -75,12 +83,12 @@ export default function Home() {
       <div className="card">
         <h3 className="font-semibold text-ink-700 mb-2">ℹ️ How to Use These Tools</h3>
         <p className="text-sm text-ink-500">
-          All three tools run entirely in your browser — no data upload required. In the
+          All four tools run entirely in your browser — no data upload required. In the
           EVM Calculator and Cash Flow Simulator, results update instantly as you adjust
           parameters; use the Cash Flow Simulator's <strong>Set Baseline</strong> and{' '}
           <strong>Compare</strong> buttons to build a scenario comparison, then export to CSV. The
-          WBS Maker saves your work in this browser automatically and can export JSON, CSV, and
-          Mermaid files or a printable report.
+          WBS Maker and Portfolio Planner save your work in this browser automatically and can
+          export and import JSON files.
         </p>
       </div>
     </div>

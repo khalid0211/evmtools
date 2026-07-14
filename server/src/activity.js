@@ -6,7 +6,7 @@ import { insertToolUsage } from './db.js'
 export const activityRouter = express.Router()
 
 const activitySchema = z.object({
-  tool: z.enum(['evm-calculator', 'cash-flow-simulator', 'wbs-maker']),
+  tool: z.enum(['evm-calculator', 'cash-flow-simulator', 'wbs-maker', 'portfolio-planner']),
 })
 
 activityRouter.post('/', requireAuth, (req, res) => {

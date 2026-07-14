@@ -32,7 +32,7 @@ export default function App() {
             <span className="text-2xl">📊</span>
             <div>
               <div className="text-lg font-semibold text-ink-900 leading-tight">Project Management Tools</div>
-              <div className="text-xs text-ink-400 leading-tight">EVM, Cash Flow &amp; WBS Tools</div>
+              <div className="text-xs text-ink-400 leading-tight">EVM, Cash Flow, WBS &amp; Portfolio Tools</div>
             </div>
           </NavLink>
           <nav className="flex items-center gap-1">
@@ -69,6 +69,14 @@ export default function App() {
             >
               WBS Maker
             </NavLink>
+            <NavLink
+              to="/portfolio-planner"
+              className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium no-underline ${isActive ? 'bg-brand-50 text-brand-700' : 'text-ink-500 hover:bg-ink-50'}`
+              }
+            >
+              Portfolio Planner
+            </NavLink>
           </nav>
         </div>
       </header>
@@ -96,7 +104,7 @@ export default function App() {
               >
                 Dr. Khalid Ahmad Khan
               </a>{' '}
-              • Engineering Management Solutions
+              • Strategic Management Solutions
             </span>
           </div>
         </div>

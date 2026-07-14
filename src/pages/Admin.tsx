@@ -13,6 +13,7 @@ const TOOL_LABELS: Record<string, string> = {
   'evm-calculator': 'EVM Calculator',
   'cash-flow-simulator': 'Cash Flow Simulator',
   'wbs-maker': 'WBS Maker',
+  'portfolio-planner': 'Portfolio Planner',
 }
 
 function loadStoredKey(): string {

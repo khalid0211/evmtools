@@ -1,4 +1,5 @@
 import type { WbsComputed, WbsState } from '../../types/wbs'
+import { downloadTextFile, timestampedFilename } from '../shared/download'
 import { isLeaf } from './tree'
 import { riskLevelValue, riskTone } from './calculations'
 
@@ -17,24 +18,6 @@ function toCsv(rows: Record<string, unknown>[]): string {
     lines.push(headers.map((h) => escape(r[h])).join(','))
   }
   return lines.join('\n')
-}
-
-function downloadCsv(csv: string, filename: string) {
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
-
-function timestamp(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
 }
 
 export function buildOutlineRows(state: WbsState, computed: WbsComputed): Record<string, unknown>[] {
@@ -65,7 +48,11 @@ export function buildOutlineRows(state: WbsState, computed: WbsComputed): Record
 }
 
 export function exportOutlineCsv(state: WbsState, computed: WbsComputed) {
-  downloadCsv(toCsv(buildOutlineRows(state, computed)), `wbs_outline_${timestamp()}.csv`)
+  downloadTextFile(
+    timestampedFilename('wbs_outline', 'csv'),
+    toCsv(buildOutlineRows(state, computed)),
+    'text/csv;charset=utf-8;',
+  )
 }
 
 function mermaidLabel(s: string): string {
@@ -116,13 +103,9 @@ export function buildMermaid(state: WbsState, computed: WbsComputed): string {
 }
 
 export function exportMermaid(state: WbsState, computed: WbsComputed) {
-  const blob = new Blob([buildMermaid(state, computed)], { type: 'text/plain;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `wbs_${timestamp()}.mmd`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  downloadTextFile(
+    timestampedFilename('wbs', 'mmd'),
+    buildMermaid(state, computed),
+    'text/plain;charset=utf-8;',
+  )
 }

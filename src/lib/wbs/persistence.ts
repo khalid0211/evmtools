@@ -5,6 +5,7 @@ import type {
   WbsNode,
   WbsState,
 } from '../../types/wbs'
+import { downloadTextFile, timestampedFilename } from '../shared/download'
 import { createDefaultSettings, MAX_DEPTH } from './tree'
 
 export const STORAGE_KEY = 'pmtools.wbs.v1'
@@ -211,17 +212,9 @@ export function parseImportedJson(text: string): ValidationResult {
 }
 
 export function exportJson(state: WbsState) {
-  const blob = new Blob([JSON.stringify(makeEnvelope(state), null, 2)], {
-    type: 'application/json',
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  a.href = url
-  a.download = `wbs_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.json`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  downloadTextFile(
+    timestampedFilename('wbs', 'json'),
+    JSON.stringify(makeEnvelope(state), null, 2),
+    'application/json',
+  )
 }

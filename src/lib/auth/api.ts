@@ -45,7 +45,7 @@ export function verifyCode(
   return post('/api/auth/verify', { email, code, name, organization })
 }
 
-export type ToolSlug = 'evm-calculator' | 'cash-flow-simulator' | 'wbs-maker'
+export type ToolSlug = 'evm-calculator' | 'cash-flow-simulator' | 'wbs-maker' | 'portfolio-planner'
 
 export function logToolUsage(tool: ToolSlug, token: string): void {
   fetch('/api/activity', {

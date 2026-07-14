@@ -10,6 +10,7 @@ import './index.css'
 const EvmCalculator = lazy(() => import('./pages/EvmCalculator'))
 const CashFlowSimulator = lazy(() => import('./pages/CashFlowSimulator'))
 const WbsMaker = lazy(() => import('./pages/WbsMaker'))
+const PortfolioPlanner = lazy(() => import('./pages/PortfolioPlanner'))
 const Admin = lazy(() => import('./pages/Admin'))
 
 function PageFallback() {
@@ -45,6 +46,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 element={
                   <Suspense fallback={<PageFallback />}>
                     <WbsMaker />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="portfolio-planner"
+                element={
+                  <Suspense fallback={<PageFallback />}>
+                    <PortfolioPlanner />
                   </Suspense>
                 }
               />

@@ -169,6 +169,10 @@ export const cashFlowHelp: HelpContent = {
           term: 'CSV exports',
           desc: 'Export Comparisons downloads the scenario table; Export Current Cashflow downloads the period-by-period series.',
         },
+        {
+          term: 'Print Report',
+          desc: 'Generates a printable A4 report of the scenario inputs, financial impact, chart, and baseline comparison table (use the browser print dialog to save as PDF).',
+        },
       ],
     },
   ],
@@ -271,6 +275,102 @@ export const wbsHelp: HelpContent = {
         {
           term: 'Print Report',
           desc: 'A printable A4 report of the outline, Gantt, cash flow, risk matrix, and current Monte Carlo results.',
+        },
+      ],
+    },
+  ],
+}
+
+export const portfolioHelp: HelpContent = {
+  title: 'Portfolio Planner — Help',
+  intro:
+    'The Portfolio Planner manages a collection of projects on a shared timeline. Each project has a budget (BAC), plan dates, and a cash flow curve; the tool aggregates them into a portfolio cash flow, compares it with a time-phased funding schedule to find overloaded periods, and — once you set data dates — tracks earned-value performance for each project and the portfolio as a whole. Your portfolio autosaves in this browser and can be saved to / loaded from a JSON file.',
+  sections: [
+    {
+      heading: 'Projects & Gantt',
+      items: [
+        {
+          term: 'Project card',
+          desc: 'Each project needs a name, BAC (Budget at Completion), Plan Start, Plan Finish, and a cash flow curve: Linear (even spend) or S-Curve shaped by Alpha (α) and Beta (β), defaults 2/2.',
+        },
+        {
+          term: 'Portfolio Gantt',
+          desc: 'Every valid project as a timeline bar. The dashed red line marks the latest data date once you start progressing.',
+        },
+        {
+          term: 'Move Projects (what-if)',
+          desc: 'Shift a project’s Plan Start (the finish moves with it, keeping the duration) or stretch its duration in months — then check the effect on cash flow and funding.',
+        },
+      ],
+    },
+    {
+      heading: 'Cash Flow & Funding',
+      items: [
+        {
+          term: 'Period granularity',
+          desc: 'View the portfolio Monthly, Quarterly, or Yearly. Switching converts your funding amounts: coarser periods sum exactly; finer periods split each amount evenly.',
+        },
+        {
+          term: 'Portfolio cash flow chart',
+          desc: 'Stacked per-project spend bars per period with the cumulative portfolio curve on the right axis.',
+        },
+        {
+          term: 'Funding Schedule table',
+          desc: 'Enter the maximum funding available in each period. Funding is keyed to calendar periods, so moving projects never re-maps your funding entries.',
+        },
+        {
+          term: 'Overload detection',
+          desc: 'A period is overloaded when the cumulative cash requirement exceeds cumulative funding (negative headroom). Overloaded periods are shaded red on the charts and highlighted in the table — fix them by moving projects, stretching durations, or adding funding.',
+        },
+        {
+          term: 'Net Funding Headroom chart',
+          desc: 'Cumulative funding minus cumulative requirement per period; red bars below zero are the overloads.',
+        },
+      ],
+    },
+    {
+      heading: 'Progress (Earned Value)',
+      items: [
+        {
+          term: 'Data dates (status updates)',
+          desc: 'Add a data date for each reporting period. New updates start from the previous update’s values; you can edit or delete past updates, and the history builds the EV/AC trend chart.',
+        },
+        {
+          term: 'Planned Value (PV)',
+          desc: 'Computed automatically for each project from its curve at the data date; the portfolio PV is the sum.',
+        },
+        {
+          term: 'Actual Cost & % Complete',
+          desc: 'You enter these per project. EV = % Complete × BAC.',
+        },
+        {
+          term: 'SPI / SPIe / CPI',
+          desc: 'Per project and for the portfolio: SPI = EV ÷ PV, CPI = EV ÷ AC, and SPIe = Earned Schedule ÷ Actual Time. Values below 1.0 mean behind schedule or over cost.',
+        },
+        {
+          term: 'Forecasts',
+          desc: 'ETC = (BAC − EV) ÷ CPI, EAC = AC + ETC, VAC = BAC − EAC, and the Expected Finish = planned duration ÷ SPIe — shown as months late or early.',
+        },
+      ],
+    },
+    {
+      heading: 'Saving & Files',
+      items: [
+        {
+          term: 'Autosave',
+          desc: 'The portfolio is saved in this browser automatically as you work.',
+        },
+        {
+          term: 'Export / Import JSON',
+          desc: 'Export JSON saves the named portfolio to a file on your drive; Import JSON restores it (or opens one from another machine).',
+        },
+        {
+          term: 'New Portfolio',
+          desc: 'Starts an empty portfolio (with confirmation). Export first if you want to keep the current one.',
+        },
+        {
+          term: 'Print Report',
+          desc: 'Generates a printable A4 report of the portfolio: projects, Gantt, cash flow, funding analysis with overloads, and the latest earned-value status (use the browser print dialog to save as PDF).',
         },
       ],
     },
