@@ -290,16 +290,16 @@ export const portfolioHelp: HelpContent = {
       heading: 'Projects & Gantt',
       items: [
         {
-          term: 'Project card',
-          desc: 'Each project needs a name, BAC (Budget at Completion), Plan Start, Plan Finish, and a cash flow curve: Linear (even spend) or S-Curve shaped by Alpha (α) and Beta (β), defaults 2/2.',
+          term: 'Project entry form + table',
+          desc: 'One form adds or edits projects: name, BAC (Budget at Completion), Plan Start, Plan Finish, and a cash flow curve — Linear (even spend) or S-Curve shaped by Alpha (α) and Beta (β), defaults 2/2. Projects are listed in a scrollable table; click a row (or Edit) to load it into the form, then Update to apply.',
         },
         {
           term: 'Portfolio Gantt',
           desc: 'Every valid project as a timeline bar. The dashed red line marks the latest data date once you start progressing.',
         },
         {
-          term: 'Move Projects (what-if)',
-          desc: 'Shift a project’s Plan Start (the finish moves with it, keeping the duration) or stretch its duration in months — then check the effect on cash flow and funding.',
+          term: 'Collapsible sections',
+          desc: 'Every section header is clickable — collapse the sections you are not using to focus; your choices are remembered in this browser.',
         },
       ],
     },
@@ -311,20 +311,24 @@ export const portfolioHelp: HelpContent = {
           desc: 'View the portfolio Monthly, Quarterly, or Yearly. Switching converts your funding amounts: coarser periods sum exactly; finer periods split each amount evenly.',
         },
         {
-          term: 'Portfolio cash flow chart',
-          desc: 'Stacked per-project spend bars per period with the cumulative portfolio curve on the right axis.',
+          term: 'Cash flow vs funding chart',
+          desc: 'Stacked per-project spend bars per period, with the cumulative cash requirement and the cumulative funding step curve overlaid on the right axis. Red bands mark overloaded periods.',
+        },
+        {
+          term: 'Net Funding Headroom chart',
+          desc: 'Cumulative funding minus cumulative requirement per period; red bars below zero are the overloads.',
         },
         {
           term: 'Funding Schedule table',
           desc: 'Enter the maximum funding available in each period. Funding is keyed to calendar periods, so moving projects never re-maps your funding entries.',
         },
         {
-          term: 'Overload detection',
-          desc: 'A period is overloaded when the cumulative cash requirement exceeds cumulative funding (negative headroom). Overloaded periods are shaded red on the charts and highlighted in the table — fix them by moving projects, stretching durations, or adding funding.',
+          term: 'Move Projects (what-if)',
+          desc: 'Shift a project’s Plan Start (the finish moves with it, keeping the duration) or stretch its duration in months, and watch the overload respond on the charts above.',
         },
         {
-          term: 'Net Funding Headroom chart',
-          desc: 'Cumulative funding minus cumulative requirement per period; red bars below zero are the overloads.',
+          term: 'Overload detection',
+          desc: 'A period is overloaded when the cumulative cash requirement exceeds cumulative funding (negative headroom). Overloaded periods are shaded red on the charts and highlighted in the table — fix them by moving projects, stretching durations, or adding funding.',
         },
       ],
     },

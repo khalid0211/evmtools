@@ -11,6 +11,7 @@ import { sortedHistory } from './history'
 export type PortfolioAction =
   | { type: 'set-name'; name: string }
   | { type: 'add-project' }
+  | { type: 'upsert-project'; project: PortfolioProject }
   | { type: 'update-project'; id: string; patch: Partial<Omit<PortfolioProject, 'id'>> }
   | { type: 'delete-project'; id: string }
   | { type: 'set-funding-granularity'; granularity: PeriodGranularity }
@@ -112,6 +113,16 @@ export function portfolioReducer(
     case 'add-project': {
       const project = createProject({ name: `Project ${state.projects.length + 1}` })
       return { ...state, projects: [...state.projects, project] }
+    }
+
+    case 'upsert-project': {
+      const exists = state.projects.some((p) => p.id === action.project.id)
+      return {
+        ...state,
+        projects: exists
+          ? state.projects.map((p) => (p.id === action.project.id ? action.project : p))
+          : [...state.projects, action.project],
+      }
     }
 
     case 'update-project':

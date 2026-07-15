@@ -92,8 +92,15 @@ export function buildPortfolioGanttFigure(
   }
 }
 
-/** Stacked per-project spend bars with the portfolio cumulative curve on a secondary axis. */
-export function buildCashflowFigure(series: PortfolioCashflowSeries): PortfolioFigure {
+/**
+ * Stacked per-project spend bars with the portfolio cumulative curve on a
+ * secondary axis. When a funding analysis is supplied, the cumulative funding
+ * step curve is overlaid on the same axis and overloaded periods are shaded.
+ */
+export function buildCashflowFigure(
+  series: PortfolioCashflowSeries,
+  analysis: FundingAnalysis | null = null,
+): PortfolioFigure {
   const bars = series.perProject.map((row, index) => ({
     x: series.labels,
     y: row.values,
@@ -102,23 +109,38 @@ export function buildCashflowFigure(series: PortfolioCashflowSeries): PortfolioF
     marker: { color: projectColor(index), opacity: 0.8 },
     hovertemplate: '%{x}<br>%{fullData.name}: %{y:,.1f}<extra></extra>',
   }))
+  const lines: unknown[] = [
+    {
+      x: series.labels,
+      y: series.cumulative,
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: 'Cumulative cash flow',
+      yaxis: 'y2',
+      line: { color: '#6f42c1', width: 3 },
+      marker: { size: 5 },
+      hovertemplate: '%{x}<br>Cumulative: %{y:,.1f}<extra></extra>',
+    },
+  ]
+  if (analysis) {
+    lines.push({
+      x: analysis.labels,
+      y: analysis.cumulativeFunding,
+      type: 'scatter',
+      mode: 'lines',
+      name: 'Cumulative funding',
+      yaxis: 'y2',
+      line: { color: '#28a745', width: 3, shape: 'hv' },
+      hovertemplate: '%{x}<br>Funding: %{y:,.1f}<extra></extra>',
+    })
+  }
   return {
-    data: [
-      ...bars,
-      {
-        x: series.labels,
-        y: series.cumulative,
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Cumulative cash flow',
-        yaxis: 'y2',
-        line: { color: '#6f42c1', width: 3 },
-        marker: { size: 5 },
-        hovertemplate: '%{x}<br>Cumulative: %{y:,.1f}<extra></extra>',
-      },
-    ] as unknown as Plotly.Data[],
+    data: [...bars, ...lines] as unknown as Plotly.Data[],
     layout: {
-      title: { text: 'Portfolio Cash Flow', font: { size: 14 } },
+      title: {
+        text: analysis ? 'Portfolio Cash Flow vs Funding' : 'Portfolio Cash Flow',
+        font: { size: 14 },
+      },
       barmode: 'stack',
       // 'category' keeps yearly labels like "2026" from being parsed as numbers
       xaxis: { tickangle: -35, type: 'category' },
@@ -135,6 +157,7 @@ export function buildCashflowFigure(series: PortfolioCashflowSeries): PortfolioF
       showlegend: true,
       legend: { orientation: 'h' as const, y: -0.3 },
       bargap: 0.25,
+      shapes: analysis ? overloadBands(analysis) : [],
     },
   }
 }
@@ -156,43 +179,6 @@ function overloadBands(analysis: FundingAnalysis): Partial<Plotly.Layout>['shape
     })
   })
   return shapes
-}
-
-/** Cumulative cash requirement vs cumulative funding, with overloaded periods shaded. */
-export function buildFundingOverlayFigure(analysis: FundingAnalysis): PortfolioFigure {
-  return {
-    data: [
-      {
-        x: analysis.labels,
-        y: analysis.cumulativeRequirement,
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Cumulative requirement',
-        line: { color: '#6f42c1', width: 3 },
-        marker: { size: 5 },
-        hovertemplate: '%{x}<br>Requirement: %{y:,.1f}<extra></extra>',
-      },
-      {
-        x: analysis.labels,
-        y: analysis.cumulativeFunding,
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Cumulative funding',
-        line: { color: '#28a745', width: 3, shape: 'hv' },
-        hovertemplate: '%{x}<br>Funding: %{y:,.1f}<extra></extra>',
-      },
-    ] as Plotly.Data[],
-    layout: {
-      title: { text: 'Funding vs Cash Requirement', font: { size: 14 } },
-      xaxis: { tickangle: -35, type: 'category' },
-      yaxis: { title: { text: 'Cumulative' }, rangemode: 'tozero' },
-      margin: { t: 40, r: 20, b: 70, l: 60 },
-      height: 360,
-      showlegend: true,
-      legend: { orientation: 'h' as const, y: -0.3 },
-      shapes: overloadBands(analysis),
-    },
-  }
 }
 
 /** Net cumulative funding headroom per period; negative (red) bars = overload. */

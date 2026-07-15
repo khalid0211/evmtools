@@ -36,6 +36,18 @@ describe('portfolioReducer projects', () => {
     expect(state.projects.map((p) => p.id)).not.toContain('a')
   })
 
+  it('upserts projects: appends new ids, replaces existing ones', () => {
+    const fresh = createProject({ id: 'c', name: 'C', bac: 30 })
+    let state = portfolioReducer(baseState(), { type: 'upsert-project', project: fresh })
+    expect(state.projects.map((p) => p.id)).toEqual(['a', 'b', 'c'])
+
+    const replaced = { ...state.projects[0], name: 'A2', bac: 150 }
+    state = portfolioReducer(state, { type: 'upsert-project', project: replaced })
+    expect(state.projects).toHaveLength(3)
+    expect(state.projects[0]).toEqual(replaced)
+    expect(state.projects[1].name).toBe('B')
+  })
+
   it('scrubs a deleted project from every snapshot', () => {
     const state = portfolioReducer(baseState(), { type: 'delete-project', id: 'a' })
     for (const snap of state.statusHistory) {

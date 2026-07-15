@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import Plotly from 'plotly.js-dist-min'
 import MetricCard from '../components/layout/MetricCard'
 import HelpDialog from '../components/layout/HelpDialog'
+import Expander from '../components/layout/Expander'
 import ReportDialog from '../components/evm/ReportDialog'
 import PortfolioToolbar from '../components/portfolio/PortfolioToolbar'
-import ProjectCards from '../components/portfolio/ProjectCards'
-import ProjectMoveTable from '../components/portfolio/ProjectMoveTable'
+import ProjectEditor from '../components/portfolio/ProjectEditor'
+import ProjectsTable from '../components/portfolio/ProjectsTable'
 import PortfolioGantt from '../components/portfolio/PortfolioGantt'
 import CashflowFundingSection from '../components/portfolio/CashflowFundingSection'
 import SnapshotBar from '../components/portfolio/SnapshotBar'
@@ -17,7 +18,6 @@ import { computePortfolioCashflow, isValidProject } from '../lib/portfolio/cashf
 import { computePortfolioRollup } from '../lib/portfolio/evm'
 import {
   buildCashflowFigure,
-  buildFundingOverlayFigure,
   buildNetFundingFigure,
   buildPortfolioGanttFigure,
   buildProgressFigure,
@@ -31,11 +31,6 @@ import {
 } from '../lib/portfolio/history'
 import { parseUtc } from '../lib/portfolio/periods'
 import {
-  buildPortfolioReportHtml,
-  type PortfolioReportImages,
-  type PortfolioReportMeta,
-} from '../lib/portfolio/report'
-import {
   exportJson,
   loadFromStorage,
   parseImportedJson,
@@ -46,7 +41,13 @@ import {
   createEmptyPortfolio,
   portfolioReducer,
 } from '../lib/portfolio/state'
+import {
+  buildPortfolioReportHtml,
+  type PortfolioReportImages,
+  type PortfolioReportMeta,
+} from '../lib/portfolio/report'
 import { useLogToolUsage } from '../lib/auth/useLogToolUsage'
+import type { PortfolioProject } from '../types/portfolio'
 
 type Tab = 'projects' | 'cashflow' | 'progress'
 
@@ -72,6 +73,8 @@ export default function PortfolioPlanner() {
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [helpOpen, setHelpOpen] = useState(false)
   const [selectedDateRaw, setSelectedDate] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editorDirty, setEditorDirty] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [reportBusy, setReportBusy] = useState(false)
   const storageWarned = useRef(false)
@@ -92,6 +95,8 @@ export default function PortfolioPlanner() {
     setToast(message)
     setTimeout(() => setToast(null), 3000)
   }
+
+  const handleDirtyChange = useCallback((dirty: boolean) => setEditorDirty(dirty), [])
 
   const validProjects = useMemo(() => state.projects.filter(isValidProject), [state.projects])
   const summary = useMemo(() => {
@@ -118,10 +123,47 @@ export default function PortfolioPlanner() {
     [state.projects, latest],
   )
 
+  const editingProject = useMemo(
+    () => state.projects.find((p) => p.id === editingId) ?? null,
+    [state.projects, editingId],
+  )
+
+  function confirmDiscardDraft(): boolean {
+    if (!editorDirty) return true
+    return window.confirm('Discard unsaved changes in the project form?')
+  }
+
+  function handleSelectProject(id: string) {
+    if (id === editingId) return
+    if (!confirmDiscardDraft()) return
+    setEditorDirty(false)
+    setEditingId(id)
+  }
+
+  function handleSaveProject(project: PortfolioProject) {
+    dispatch({ type: 'upsert-project', project })
+    setEditingId(null)
+    showToast(editingId ? 'Project updated' : 'Project added')
+  }
+
+  function handleDeleteProject(id: string) {
+    const project = state.projects.find((p) => p.id === id)
+    if (
+      !window.confirm(
+        `Delete "${project?.name ?? 'this project'}" and its status history entries?`,
+      )
+    ) {
+      return
+    }
+    if (editingId === id) setEditingId(null)
+    dispatch({ type: 'delete-project', id })
+  }
+
   function handleNew() {
     if (!window.confirm('Start a new empty portfolio? Unsaved changes will be lost.')) return
     dispatch({ type: 'replace-state', state: createEmptyPortfolio() })
     setSelectedDate(null)
+    setEditingId(null)
     setImportErrors([])
     showToast('New portfolio started')
   }
@@ -133,6 +175,7 @@ export default function PortfolioPlanner() {
       if (result.ok) {
         dispatch({ type: 'replace-state', state: result.state })
         setSelectedDate(null)
+        setEditingId(null)
         setImportErrors([])
         showToast('Portfolio imported')
       } else {
@@ -170,9 +213,8 @@ export default function PortfolioPlanner() {
         fundedKeys,
       )
       if (series) {
-        images.cashflow = await toPng(buildCashflowFigure(series))
         const analysis = computeFundingAnalysis(series, state.funding)
-        images.funding = await toPng(buildFundingOverlayFigure(analysis))
+        images.cashflow = await toPng(buildCashflowFigure(series, analysis))
         images.net = await toPng(buildNetFundingFigure(analysis))
       }
 
@@ -293,42 +335,32 @@ export default function PortfolioPlanner() {
 
       {tab === 'projects' && (
         <>
-          <ProjectCards
-            projects={state.projects}
-            onUpdate={(id, patch) => dispatch({ type: 'update-project', id, patch })}
-            onDelete={(id) => {
-              const project = state.projects.find((p) => p.id === id)
-              if (
-                window.confirm(
-                  `Delete "${project?.name ?? 'this project'}" and its status history entries?`,
-                )
-              ) {
-                dispatch({ type: 'delete-project', id })
-              }
-            }}
-            onAdd={() => dispatch({ type: 'add-project' })}
-          />
-
-          <div className="card">
-            <div className="section-header">
-              <span>📅 Portfolio Gantt</span>
+          <Expander storageKey="portfolio.projects" title="📋 Projects">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+              <ProjectsTable
+                projects={state.projects}
+                editingId={editingId}
+                onEdit={handleSelectProject}
+                onDelete={handleDeleteProject}
+              />
+              <ProjectEditor
+                key={editingId ?? 'new'}
+                editing={editingProject}
+                onSave={handleSaveProject}
+                onCancel={() => {
+                  if (confirmDiscardDraft()) {
+                    setEditorDirty(false)
+                    setEditingId(null)
+                  }
+                }}
+                onDirtyChange={handleDirtyChange}
+              />
             </div>
+          </Expander>
+
+          <Expander storageKey="portfolio.gantt" title="📅 Portfolio Gantt">
             <PortfolioGantt projects={state.projects} dataDate={latest?.dataDate ?? null} />
-          </div>
-
-          <div className="card">
-            <div className="section-header">
-              <span>↔️ Move Projects (what-if)</span>
-            </div>
-            <p className="mb-3 text-xs text-ink-500">
-              Shift a project's start (the finish moves with it) or stretch its duration, then
-              check the effect on the Cash Flow & Funding tab.
-            </p>
-            <ProjectMoveTable
-              projects={state.projects}
-              onUpdate={(id, patch) => dispatch({ type: 'update-project', id, patch })}
-            />
-          </div>
+          </Expander>
         </>
       )}
 
@@ -342,15 +374,13 @@ export default function PortfolioPlanner() {
           onSetAmount={(periodKey, amount) =>
             dispatch({ type: 'set-funding-amount', periodKey, amount })
           }
+          onUpdateProject={(id, patch) => dispatch({ type: 'update-project', id, patch })}
         />
       )}
 
       {tab === 'progress' && (
         <>
-          <div className="card">
-            <div className="section-header">
-              <span>📆 Status Updates</span>
-            </div>
+          <Expander storageKey="portfolio.snapshots" title="📆 Status Updates">
             <p className="mb-3 text-xs text-ink-500">
               Add a data date, then enter each project's Actual Cost and % Complete as of that
               date. New updates start from the previous update's values.
@@ -372,14 +402,14 @@ export default function PortfolioPlanner() {
                 setSelectedDate(null)
               }}
             />
-          </div>
+          </Expander>
 
           {selectedSnapshot ? (
             <>
-              <div className="card">
-                <div className="section-header">
-                  <span>📊 Project Status — {selectedSnapshot.dataDate}</span>
-                </div>
+              <Expander
+                storageKey="portfolio.status"
+                title={`📊 Project Status — ${selectedSnapshot.dataDate}`}
+              >
                 <StatusTable
                   projects={state.projects}
                   snapshot={selectedSnapshot}
@@ -392,13 +422,10 @@ export default function PortfolioPlanner() {
                     })
                   }
                 />
-              </div>
+              </Expander>
 
               {rollup && (
-                <div className="card">
-                  <div className="section-header">
-                    <span>🎯 Portfolio Roll-up</span>
-                  </div>
+                <Expander storageKey="portfolio.rollup" title="🎯 Portfolio Roll-up">
                   <RollupMetrics
                     rollup={rollup}
                     editingOtherDate={
@@ -407,19 +434,16 @@ export default function PortfolioPlanner() {
                         : null
                     }
                   />
-                </div>
+                </Expander>
               )}
 
-              <div className="card">
-                <div className="section-header">
-                  <span>📈 PV / EV / AC over time</span>
-                </div>
+              <Expander storageKey="portfolio.progress-chart" title="📈 PV / EV / AC over time">
                 <ProgressChart
                   projects={state.projects}
                   history={state.statusHistory}
                   dataDate={latest?.dataDate ?? null}
                 />
-              </div>
+              </Expander>
             </>
           ) : (
             <div className="card-muted text-sm text-ink-400">

@@ -50,9 +50,9 @@ export default function StatusTable({ projects, snapshot, onUpdateEntry }: Props
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
+    <div className="max-h-80 overflow-auto">
+      <table className="w-full text-xs">
+        <thead className="sticky top-0 z-[1] bg-white">
           <tr className="border-b border-ink-100 text-left text-xs font-bold uppercase tracking-wide text-ink-400">
             <th className="py-2 pr-3">Project</th>
             <th className="py-2 pr-3 text-right">BAC</th>
@@ -70,18 +70,18 @@ export default function StatusTable({ projects, snapshot, onUpdateEntry }: Props
         <tbody>
           {rows.map((row) => (
             <tr key={row.projectId} className="border-b border-ink-50">
-              <td className="py-1.5 pr-3 font-semibold text-ink-700">
+              <td className="py-1 pr-3 font-semibold text-ink-700">
                 {row.name || 'Unnamed project'}
                 {!row.started && (
                   <span className="ml-2 text-xs font-normal text-ink-400">(not started)</span>
                 )}
               </td>
-              <td className="py-1.5 pr-3 text-right text-ink-600">{fmt(row.bac)}</td>
-              <td className="py-1.5 pr-3 text-right text-ink-600">{fmt(row.pv)}</td>
-              <td className="py-1.5 pr-3">
+              <td className="py-1 pr-3 text-right text-ink-600">{fmt(row.bac)}</td>
+              <td className="py-1 pr-3 text-right text-ink-600">{fmt(row.pv)}</td>
+              <td className="py-1 pr-3">
                 <input
                   type="number"
-                  className="input !w-24 !py-1"
+                  className="input !w-24 !py-0.5"
                   min={0}
                   value={row.ac || ''}
                   placeholder="0"
@@ -92,10 +92,10 @@ export default function StatusTable({ projects, snapshot, onUpdateEntry }: Props
                   }}
                 />
               </td>
-              <td className="py-1.5 pr-3">
+              <td className="py-1 pr-3">
                 <input
                   type="number"
-                  className="input !w-20 !py-1"
+                  className="input !w-20 !py-0.5"
                   min={0}
                   max={100}
                   value={row.pctComplete || ''}
@@ -109,21 +109,21 @@ export default function StatusTable({ projects, snapshot, onUpdateEntry }: Props
                   }}
                 />
               </td>
-              <td className="py-1.5 pr-3 text-right text-ink-600">{fmt(row.ev)}</td>
-              <td className={`py-1.5 pr-3 text-right font-semibold ${indexTone(row.spi, row.started)}`}>
+              <td className="py-1 pr-3 text-right text-ink-600">{fmt(row.ev)}</td>
+              <td className={`py-1 pr-3 text-right font-semibold ${indexTone(row.spi, row.started)}`}>
                 {fmtIndex(row.started ? row.spi : null, row.started)}
               </td>
-              <td className={`py-1.5 pr-3 text-right font-semibold ${indexTone(row.spie, row.started)}`}>
+              <td className={`py-1 pr-3 text-right font-semibold ${indexTone(row.spie, row.started)}`}>
                 {fmtIndex(row.spie, row.started)}
               </td>
-              <td className={`py-1.5 pr-3 text-right font-semibold ${indexTone(row.cpi, row.started)}`}>
+              <td className={`py-1 pr-3 text-right font-semibold ${indexTone(row.cpi, row.started)}`}>
                 {fmtIndex(row.cpi, row.started)}
               </td>
-              <td className="py-1.5 pr-3 text-ink-600">
+              <td className="py-1 pr-3 text-ink-600">
                 {row.started && row.expectedFinish ? row.expectedFinish : '—'}
               </td>
               <td
-                className={`py-1.5 text-xs font-semibold ${
+                className={`py-1 text-xs font-semibold ${
                   row.started && row.slipMonths !== null && row.slipMonths > 0.05
                     ? 'text-danger'
                     : 'text-ink-500'

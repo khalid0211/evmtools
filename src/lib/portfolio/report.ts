@@ -19,7 +19,6 @@ export interface PortfolioReportMeta {
 export interface PortfolioReportImages {
   gantt: string
   cashflow: string
-  funding: string
   net: string
   progress: string
 }
@@ -228,12 +227,13 @@ export function buildPortfolioReportHtml(
   const cashflowSection =
     series && images.cashflow
       ? `<div class="section">
-           <h2>Portfolio Cash Flow</h2>
-           <img class="chart chart-wide" src="${images.cashflow}" alt="Portfolio cash flow histogram and cumulative curve" />
+           <h2>Portfolio Cash Flow vs Funding</h2>
+           <img class="chart chart-wide" src="${images.cashflow}" alt="Portfolio cash flow with cumulative requirement and funding curves" />
            <p class="muted small">
              Each project spreads its BAC across its plan dates along its curve (linear or
-             S-curve); bars stack per project, with the cumulative portfolio requirement on the
-             right axis (${escapeHtml(state.funding.granularity.toLowerCase())} periods).
+             S-curve); bars stack per project. The cumulative cash requirement and the cumulative
+             funding step curve share the right axis (${escapeHtml(state.funding.granularity.toLowerCase())}
+             periods); shaded bands mark overloaded periods.
            </p>
          </div>`
       : ''
@@ -245,7 +245,6 @@ export function buildPortfolioReportHtml(
            ${overloadSummary(analysis)}
            ${fundingTable(series, analysis)}
            <p class="muted small">Highlighted rows are overloaded: the cumulative cash requirement exceeds cumulative funding.</p>
-           ${images.funding ? `<img class="chart chart-wide" src="${images.funding}" alt="Cumulative funding versus cumulative requirement" />` : ''}
            ${images.net ? `<img class="chart chart-wide" src="${images.net}" alt="Net funding headroom per period" />` : ''}
          </div>`
       : ''
