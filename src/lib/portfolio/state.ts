@@ -16,6 +16,7 @@ export type PortfolioAction =
   | { type: 'delete-project'; id: string }
   | { type: 'set-funding-granularity'; granularity: PeriodGranularity }
   | { type: 'set-funding-amount'; periodKey: string; amount: number }
+  | { type: 'set-funding-amounts'; amounts: Record<string, number> }
   | { type: 'upsert-snapshot'; dataDate: string }
   | {
       type: 'update-snapshot-entry'
@@ -161,6 +162,14 @@ export function portfolioReducer(
         amounts[action.periodKey] = action.amount
       } else {
         delete amounts[action.periodKey]
+      }
+      return { ...state, funding: { ...state.funding, amounts } }
+    }
+
+    case 'set-funding-amounts': {
+      const amounts: Record<string, number> = {}
+      for (const [key, amount] of Object.entries(action.amounts)) {
+        if (Number.isFinite(amount) && amount > 0) amounts[key] = amount
       }
       return { ...state, funding: { ...state.funding, amounts } }
     }

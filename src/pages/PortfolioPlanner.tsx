@@ -374,6 +374,7 @@ export default function PortfolioPlanner() {
           onSetAmount={(periodKey, amount) =>
             dispatch({ type: 'set-funding-amount', periodKey, amount })
           }
+          onSetAmounts={(amounts) => dispatch({ type: 'set-funding-amounts', amounts })}
           onUpdateProject={(id, patch) => dispatch({ type: 'update-project', id, patch })}
         />
       )}

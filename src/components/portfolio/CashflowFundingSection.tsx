@@ -18,6 +18,7 @@ interface Props {
   funding: FundingSchedule
   onSetGranularity: (g: PeriodGranularity) => void
   onSetAmount: (periodKey: string, amount: number) => void
+  onSetAmounts: (amounts: Record<string, number>) => void
   onUpdateProject: (id: string, patch: Partial<Omit<PortfolioProject, 'id'>>) => void
 }
 
@@ -28,6 +29,7 @@ export default function CashflowFundingSection({
   funding,
   onSetGranularity,
   onSetAmount,
+  onSetAmounts,
   onUpdateProject,
 }: Props) {
   // funded periods outside the plan range must stay visible on the shared axis
@@ -121,10 +123,36 @@ export default function CashflowFundingSection({
       </Expander>
 
       <Expander storageKey="portfolio.funding" title="🏦 Funding Schedule">
-        <p className="mb-3 text-xs text-ink-500">
-          Enter the maximum funding available in each period. Rows highlighted in red are
-          overloaded: the cumulative cash requirement exceeds the cumulative funding.
-        </p>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-ink-500">
+            Enter the maximum funding available in each period, or start from Auto Calculate
+            (funding = cash requirement) and adjust. Rows highlighted in red are overloaded: the
+            cumulative cash requirement exceeds the cumulative funding.
+          </p>
+          <button
+            type="button"
+            className="btn-secondary shrink-0"
+            title="Set each period's funding to its cash requirement"
+            onClick={() => {
+              const hasExisting = Object.values(funding.amounts).some((v) => v > 0)
+              if (
+                hasExisting &&
+                !window.confirm(
+                  'Replace the current funding schedule with the per-period cash requirement?',
+                )
+              ) {
+                return
+              }
+              const amounts: Record<string, number> = {}
+              series.periods.forEach((period, i) => {
+                amounts[period.key] = series.perPeriod[i]
+              })
+              onSetAmounts(amounts)
+            }}
+          >
+            ⚡ Auto Calculate
+          </button>
+        </div>
         <FundingTable series={series} analysis={analysis} onSetAmount={onSetAmount} />
       </Expander>
 

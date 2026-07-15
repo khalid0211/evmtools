@@ -323,6 +323,10 @@ export const portfolioHelp: HelpContent = {
           desc: 'Enter the maximum funding available in each period. Funding is keyed to calendar periods, so moving projects never re-maps your funding entries.',
         },
         {
+          term: 'Auto Calculate',
+          desc: 'Fills the funding schedule with each period’s cash requirement — a perfectly matched baseline (zero headroom everywhere) you can then adjust up or down.',
+        },
+        {
           term: 'Move Projects (what-if)',
           desc: 'Shift a project’s Plan Start (the finish moves with it, keeping the duration) or stretch its duration in months, and watch the overload respond on the charts above.',
         },

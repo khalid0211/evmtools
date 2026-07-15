@@ -74,6 +74,15 @@ describe('portfolioReducer funding', () => {
     expect(monthly.funding.amounts['2026-01']).toBeCloseTo(40 / 3)
   })
 
+  it('replaces the whole schedule, dropping non-positive amounts', () => {
+    const state = portfolioReducer(baseState(), {
+      type: 'set-funding-amounts',
+      amounts: { '2026-Q3': 25.5, '2026-Q4': 0, '2027-Q1': -3, '2027-Q2': 12 },
+    })
+    expect(state.funding.amounts).toEqual({ '2026-Q3': 25.5, '2027-Q2': 12 })
+    expect(state.funding.granularity).toBe('Quarterly')
+  })
+
   it('sets and clears per-period amounts', () => {
     let state = portfolioReducer(baseState(), {
       type: 'set-funding-amount',
