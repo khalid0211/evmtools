@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PortfolioProject } from '../../types/portfolio'
 import { computePortfolioCashflow } from './cashflow'
-import { computeFundingAnalysis } from './funding'
+import { autoFundingAmounts, computeFundingAnalysis } from './funding'
 
 const project: PortfolioProject = {
   id: 'p1',
@@ -53,6 +53,26 @@ describe('computeFundingAnalysis', () => {
     expect(range.fromLabel).toBe('Q1 2026')
     expect(range.toLabel).toBe('Q2 2026')
     expect(range.worst).toBeCloseTo(-series.cumulative[1], 6)
+  })
+
+  it('auto-calculates funding rounded up to 2 decimals with no resulting overload', () => {
+    const series = computePortfolioCashflow([project], 'Monthly')!
+    const amounts = autoFundingAmounts(series)
+    series.periods.forEach((period, i) => {
+      const requirement = series.perPeriod[i]
+      if (requirement <= 0) {
+        expect(period.key in amounts).toBe(false)
+        return
+      }
+      const funded = amounts[period.key]
+      // exactly 2 decimal places
+      expect(funded).toBeCloseTo(Math.round(funded * 100) / 100, 12)
+      // never below the requirement, never more than a cent above
+      expect(funded).toBeGreaterThanOrEqual(requirement - 1e-9)
+      expect(funded - requirement).toBeLessThan(0.01 + 1e-9)
+    })
+    const analysis = computeFundingAnalysis(series, { granularity: 'Monthly', amounts })
+    expect(analysis.overloaded.every((o) => !o)).toBe(true)
   })
 
   it('includes funded periods outside the plan range in the axis and totals', () => {

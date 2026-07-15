@@ -5,7 +5,7 @@ import ToggleGroup from '../layout/ToggleGroup'
 import FundingTable from './FundingTable'
 import ProjectMoveTable from './ProjectMoveTable'
 import { computePortfolioCashflow } from '../../lib/portfolio/cashflow'
-import { computeFundingAnalysis } from '../../lib/portfolio/funding'
+import { autoFundingAmounts, computeFundingAnalysis } from '../../lib/portfolio/funding'
 import { buildCashflowFigure, buildNetFundingFigure } from '../../lib/portfolio/figures'
 import type {
   FundingSchedule,
@@ -143,11 +143,7 @@ export default function CashflowFundingSection({
               ) {
                 return
               }
-              const amounts: Record<string, number> = {}
-              series.periods.forEach((period, i) => {
-                amounts[period.key] = series.perPeriod[i]
-              })
-              onSetAmounts(amounts)
+              onSetAmounts(autoFundingAmounts(series))
             }}
           >
             ⚡ Auto Calculate

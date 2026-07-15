@@ -26,6 +26,22 @@ export interface FundingAnalysis {
 }
 
 /**
+ * Funding schedule that exactly covers the cash requirement: each period's
+ * requirement rounded UP to 2 decimals (never below the requirement, so
+ * applying it produces no overload). Zero-requirement periods are omitted.
+ */
+export function autoFundingAmounts(series: PortfolioCashflowSeries): Record<string, number> {
+  const amounts: Record<string, number> = {}
+  series.periods.forEach((period, i) => {
+    const requirement = series.perPeriod[i]
+    if (requirement <= 0) return
+    // the 1e-9 guard keeps float noise (e.g. 40.000000000000004) from bumping a value a cent up
+    amounts[period.key] = Math.ceil((requirement - 1e-9) * 100) / 100
+  })
+  return amounts
+}
+
+/**
  * Overlay a time-phased funding schedule on the portfolio cash requirement.
  * Both series share the cashflow series' period axis, so the schedule's
  * granularity must match the one the series was computed with.
